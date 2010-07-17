@@ -1,0 +1,118 @@
+
+=head1 DESCRIPTION
+
+Currently this is a place I'm sticking my notes.
+
+=head1 EXAMPLES
+
+=head2 LogDispatch
+
+    my $logger = new Log::Dispatch(
+        outputs => [
+            [ Screen => ( 'min_level' => 'debug' ) ]
+        ]
+    );
+
+    topic LogDispatch => sub {
+        $logger->log( %{ $_->params } );
+        return $_->cancel_bubble;
+    };
+
+    subscriber LogDispatch => sub {
+        return $_->clone(
+            params => $_->params->merge( {
+                message => '[Prefix] ' . $_->params->{message}
+            } )
+        )
+    };
+
+    publish LogDispatch => 
+        params => {
+            message => "Something that needs logging",
+            level => "alert"
+        };
+
+
+=head2 LogDispatch with Bread::Board
+
+    use Bread::Board;
+    use Black::Board;
+
+    container Logger => as {
+        my $s = service LogDispatch => (
+            lifecycle => 'Singleton',
+            block => sub {
+                Log::Dispatch->new(
+                    Outputs => [
+                        [ Screen => ( min_level => 'debug' ) ]
+                    ]
+                );
+            }
+        );
+        topic LogDispatch => as {
+            $s->get->log( %{ $_->params } );
+            return $_->cancel_bubble;
+        };
+    };
+    container Plugin => as {
+        subscriber LogDispatch => sub {
+            return $_->clone(
+                params => $_->params->merge( {
+                    message => '[Plugin] ' . $_->params->{message}
+                } )
+            )
+        };
+        service Plugin1 => (
+            block => sub { ... }
+        );
+    };
+
+=head2 LogDispatch no sugar
+
+    my $publisher = Black::Board::Publisher->new;
+
+    my $log_topic = Black::Board::Topic->new(
+        name => "LogDispatch"
+    );
+
+    $publisher->add_topic( $log_dispatch );
+
+    my $logger = new Log::Dispatch(
+        outputs => [
+            [ Screen => ( 'min_level' => 'debug' ) ]
+        ]
+    );
+
+    $log_topic->add_subscriber(
+        Black::Board::Subscriber->new(
+            subscription => sub {
+                $logger->log( %{ $_->params } );
+                return $_->cancel_bubble;
+            }
+        )
+    );
+
+    $log_topic->add_subscriber(
+        Black::Board::Subscriber->new(
+            subscription => sub {
+                return $_->clone(
+                    params => $_->params->merge( {
+                        message => '[Prefix] ' . $_->params->{message}
+                    } )
+                )
+            }
+        )
+    );
+
+    $publisher->publish(
+        topics  => [ 'LogDispatch' ],
+        message => $log_topic->create_message(
+            params => {
+                message => "Something that needs logging",
+                level   => "alert"
+            }
+        )
+    );
+
+
+
