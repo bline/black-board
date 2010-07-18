@@ -53,6 +53,28 @@ set to false in the clone.
 * An example of an end-point is the subscriber in a LogDispatch subscription
 chain that dispatches to the log object. 
 
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board::Publisher> - publishes Messages to L<Topic|Black::Board::Topic>s
+
+=item *
+
+L<Black::Board::Topic> - delivers Messages to L<Black::Board::Subscriber>s
+
+=item *
+
+L<Black::Board::Subscriber> - receives a Message
+
+=item *
+
+L<Black::Board> - provides sugar syntax to do all this
+
+=back
+
 =head1 AUTHOR
 
 Scott Beck <scottbeck@gmail.com>
@@ -63,32 +85,6 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
-
-=head1 SEE ALSO
-
-=over 4
-
-=item *
-
-L<Black::Board>
-
-=item *
-
-L<Black::Board::Publisher>
-
-=item *
-
-L<Black::Board::Topic>
-
-=item *
-
-L<Black::Board::Subscriber>
-
-=item *
-
-L<Black::Board>
-
-=back
 
 =cut
 
