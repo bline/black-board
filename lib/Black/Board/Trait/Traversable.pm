@@ -1,5 +1,7 @@
 use MooseX::Declare;
 
+#ABSTRACT: gives you a parent and the ability to find root
+
 role Black::Board::Trait::Traversable
     with MooseX::Clone
 { 
@@ -25,7 +27,7 @@ __END__
 
 =head1 NAME
 
-Black::Board::Trait::Traversable
+Black::Board::Trait::Traversable - gives you a parent and the ability to find root
 
 =head1 VERSION
 

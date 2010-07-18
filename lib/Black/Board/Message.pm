@@ -1,5 +1,7 @@
 use MooseX::Declare;
 
+#ABSTRACT: A simple default Message for L<Bread::Board>
+
 class Black::Board::Message
     with MooseX::Param
     with Black::Board::Trait::Traversable
@@ -35,7 +37,7 @@ __END__
 
 =head1 NAME
 
-Black::Board::Message
+Black::Board::Message - A simple default Message for L<Bread::Board>
 
 =head1 VERSION
 

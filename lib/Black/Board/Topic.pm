@@ -1,5 +1,7 @@
 use MooseX::Declare;
 
+#ABSTRACT: Topic module for L<Black::Board>, meshes L<Messages|Black::Board::Message> with L<Subscribers|Black::Board::Subscriber>
+
 
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
@@ -82,7 +84,7 @@ __END__
 
 =head1 NAME
 
-Black::Board::Topic
+Black::Board::Topic - Topic module for L<Black::Board>, meshes L<Messages|Black::Board::Message> with L<Subscribers|Black::Board::Subscriber>
 
 =head1 VERSION
 
