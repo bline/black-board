@@ -4,7 +4,6 @@ use warnings;
 use Test::More tests => 9;
 
 use_ok( 'Black::Board' );
-use_ok( 'Black::Board::Message::Simple' );
 use_ok( 'Black::Board::Message' );
 use_ok( 'Black::Board::Publisher' );
 use_ok( 'Black::Board::Subscriber' );

@@ -1,8 +1,11 @@
 use MooseX::Declare;
 
+# ABSTRACT: Publisher object for L<Black::Board>, dispatches to Topic subscribers
+
 class Black::Board::Publisher
     with Black::Board::Trait::Traversable
 {
+
     use Scalar::Util qw( blessed reftype );
     use Black::Board::Types qw(
         TopicNameList
@@ -32,21 +35,40 @@ class Black::Board::Publisher
         }
     );
 
+    before add_topic( Topic $topic ) {
+        if ( $self->first_topic( sub { $_->name eq $topic->name } ) ) {
+            confess "'" . $topic->name . "' has already been registered";
+        }
+    }
 
-    method get_topic( TopicName $topic ) {
+
+    method remove_topic( TopicName $topic_name ) {
+        my $topics = $self->topics;
+        for ( my $i = 0; $i < $topics->count; ++$i ) {
+            if ( $topics->get( $i )->name eq $topic_name ) {
+                $topics->delete( $i );
+                last;
+            }
+        }
+    }
+
+
+    method get_topic( TopicName $topic_name ) {
         return $self->first_topic( sub { $_->name eq $topic } );
     }
 
 
     method publish( TopicName|Topic :$topic, Message :$message ) {
 
-        my $topic_copy = $topic;
         # turn TopicName into Topic
-        $topic = $self->get_topic( $topic )
-            unless blessed $topic;
+        unless (blessed $topic ) {
+            my $topic_copy = $topic;
 
-        confess "Invalid topic $topic_copy"
-            unless defined $topic;
+            $topic = $self->get_topic( $topic );
+
+            confess "Invalid topic $topic_copy"
+                unless defined $topic;
+        }
 
         for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
 
@@ -77,11 +99,18 @@ __END__
 
 =head1 NAME
 
-Black::Board::Publisher
+Black::Board::Publisher - Publisher object for L<Black::Board>, dispatches to Topic subscribers
 
 =head1 VERSION
 
 version 0.0001
+
+=head1 DESCRIPTION
+
+This is the Publisher object for L<Black::Board>. It contains a list of
+L<Topic|Black::Board::Topic> objects. The C<Publisher> object takes care of
+this list of C<Topic> objects, it handles dispatching to them and provides
+methods to add and remove topics.
 
 =head1 ATTRIBUTES
 
@@ -109,6 +138,11 @@ Returns a list of L<Black::Board::Topic> objects registered to this publisher.
 
 Peform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
 
+=head2 C<remove_topic>
+
+Only argument is a L<Black::Board::Types/TYPES/TopicName>. Removes the given
+TopicName from this publishers list of topics.
+
 =head2 C<get_topic>
 
 Given a TopicName, returns a Topic object if found, undefined otherwise.
@@ -130,6 +164,16 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board>
+
+=back
 
 =cut
 

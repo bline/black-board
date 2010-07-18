@@ -54,7 +54,7 @@ class Black::Board::Topic
     }
 
 
-    method deliver( Publisher :$publisher, Subscriber :$subscriber, Message :$message ) {
+    method deliver( Subscriber :$subscriber, Message :$message, Publisher :$publisher ) {
 
         # first give a chance for soft failure
         return unless $self->wants_message( $message );
@@ -116,17 +116,15 @@ version 0.0001
 
 =head1 DESCRIPTION
 
-A topic has a list of subscribers. It also has a say in what kinds of messages
-will be going to said subscribers. A topic is registered to a specific
-publisher. The publisher takes care of finding which topic to publish to and
-passes off the message to the individual subscribers. Each subscriber verifies
-the message through the topic interface and then processes it. If the message is
-modified by the subscriber, a clone of the message with the modifications is
-expected to be returned.
+A topic has a list of subscribers.  It also has a say in what kinds of messages
+will be going to said subscribers.  A topic is registered to a specific
+L<Publisher|Black::Board::Publisher>. The publisher takes care of finding which
+topic to publish to and passes off the L<Message|Black::Board::Message> to the
+individual L<Topic|Black::Board::Topic> objects.  If the message is modified by
+the subscriber, a clone of the message with the modifications is expected to be
+returned.
 
-This is one pieces in the puzzle.
-
-B<<<Put reference to overview material here once it's written.>>>
+This is one of the pieces in the puzzle.
 
 =head1 ATTRIBUTES
 
@@ -185,6 +183,16 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board>
+
+=back
 
 =cut
 

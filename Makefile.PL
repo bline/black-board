@@ -29,6 +29,7 @@ my %WriteMakefileArgs = (
     'Moose::Exporter' => '0',
     'Moose::Util::TypeConstraints' => '0',
     'MooseX::ClassAttribute' => '0',
+    'MooseX::Clone' => '0',
     'MooseX::Declare' => '0',
     'MooseX::Types' => '0',
     'MooseX::Types::Moose' => '0',

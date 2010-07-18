@@ -4,6 +4,7 @@ class Black::Board::Message
     with MooseX::Param
     with Black::Board::Trait::Traversable
 {
+    use MooseX::Clone;
 
     has 'bubble' => (
         is => 'rw',
@@ -14,10 +15,10 @@ class Black::Board::Message
 
 
     method cancel_bubble {
-        $self->bubble(0);
-        return $self;
+        return $self->clone( bubble => 0 );
     }
 }
+
 
 1;
 
@@ -46,9 +47,11 @@ dispatching the current subscription message.
 
 This makes sense from the context of a L<Black::Board::Subscriber> subscription
 callback. It allows you to cancel the current chain of subscriber dispatch.
-This is usually done in end-point subscribers. An example of an end-point is
-the subscriber in a LogDispatch subscription chain that dispatches to the log
-object. 
+This is usually done in end-point* subscribers. This object is cloned and bubble
+set to false in the clone.
+
+* An example of an end-point is the subscriber in a LogDispatch subscription
+chain that dispatches to the log object. 
 
 =head1 AUTHOR
 
@@ -60,6 +63,32 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board>
+
+=item *
+
+L<Black::Board::Publisher>
+
+=item *
+
+L<Black::Board::Topic>
+
+=item *
+
+L<Black::Board::Subscriber>
+
+=item *
+
+L<Black::Board>
+
+=back
 
 =cut
 

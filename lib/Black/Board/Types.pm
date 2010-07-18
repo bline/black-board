@@ -35,7 +35,7 @@ class Black::Board::Types {
     class_type Message, { class => 'Black::Board::Message' };
     coerce Message,
         from HashRef,
-            via { Black::Board::Message->new( %{ $_[0] } ) }
+            via { Black::Board::Message->new( %{ $_[0] } ) };
 
 
     subtype MessageList,
@@ -163,6 +163,16 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board>
+
+=back
 
 =cut
 

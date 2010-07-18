@@ -12,7 +12,6 @@ graph.yml
 lib/Black/Board.pm
 lib/Black/Board/Manual.pod
 lib/Black/Board/Message.pm
-lib/Black/Board/Message/Simple.pm
 lib/Black/Board/Publisher.pm
 lib/Black/Board/Subscriber.pm
 lib/Black/Board/Topic.pm
@@ -27,3 +26,4 @@ t/release-no-tabs.t
 t/release-pod-coverage.t
 t/release-pod-spell.t
 t/release-pod-syntax.t
+weaver.ini
