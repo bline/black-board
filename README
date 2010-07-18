@@ -1,0 +1,131 @@
+NAME
+    Black::Board - publish messages and subscribe to topics
+
+VERSION
+    version 0.0001
+
+SYNOPSIS
+        use Log::Dispatch;
+        use Black::Board;
+
+        my $publisher = Black::Board::Publisher->new;
+
+        my $log_topic = Black::Board::Topic->new(
+            name => "LogDispatch"
+        );
+
+        $publisher->add_topic( $log_topic );
+
+        my $logger = Log::Dispatch->new(
+            outputs => [
+                [ Screen => ( 'min_level' => 'debug' ) ]
+            ]
+        );
+
+        $log_topic->add_subscriber(
+            Black::Board::Subscriber->new(
+                subscription => sub {
+                    $logger->log( %{ $_->params } );
+                    return $_->cancel_bubble;
+                }
+            )
+        );
+
+        $log_topic->add_subscriber(
+            Black::Board::Subscriber->new(
+                subscription => sub {
+                    return $_->clone(
+                        params => $_->params->merge( {
+                            message => '[Prefix] ' . $_->params->{message}
+                        } )
+                    )
+                }
+            )
+        );
+
+        $publisher->publish(
+            topics  => [ 'LogDispatch' ],
+            message => {
+                params => {
+                    message => "Something that needs logging",
+                    level   => "alert"
+                }
+            }
+        );
+
+        # -- OR -- #
+
+
+        my $logger = Log::Dispatch->(
+            outputs => [
+                [ Screen => ( 'min_level' => 'debug' ) ]
+            ]
+        );
+
+        # any arguments beyond the first are passed off to subscriber
+        topic LogDispatch => sub {
+            $logger->log( %{ $_->params } );
+            return $_->cancel_bubble;
+        };
+
+        subscriber LogDispatch => sub {
+            return $_->clone(
+                params => $_->params->merge( {
+                    message => '[Prefix] ' . $_->params->{message}
+                } )
+            )
+        };
+
+        publish LogDispatch => 
+            params => {
+                message => "Something that needs logging",
+                level   => "alert"
+            };
+
+DESCRIPTION
+  WARNING WARNING WARNING
+    This is alpha quality code. It's a running experiment at the moment.
+    When things are flushed out a little I can make a few more promises on
+    future changes. For now I can make no promises. Use at your own risk!
+
+    This code is inspired by Bread::Board and even a few bits were stolen
+    from it.
+
+    The purpose of this module is to provide a publisher/subscriber
+    interface for passing messages.
+
+METHODS
+  "topic"
+    First argument is the topic name to create. All other arguments are
+    passed off to "METHODS/subscriber" as new subscription callbacks.
+
+  "subscriber"
+    Create a new Black::Board::Subscription object and adds it to the topic
+    specified. First argument is a Black::Board::Topic or the name of one
+    already registered. The second argument should be a code reference. The
+    code reference is passed off to Black::Board::Subscriber as the
+    "subscription" callback.
+
+  "publish"
+    Publishes the given message to the given topics. The first argument can
+    be the topic name or an array reference of topic names to publish to.
+    The second argument should be the message object we are publishing. If
+    you specify a hash reference here it will be coerced into a
+    Black::Board::Message object correct for this Topic.
+
+AUTHOR
+    Scott Beck <scottbeck@gmail.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 182:
+        =back without =over
+

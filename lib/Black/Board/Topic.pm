@@ -1,9 +1,93 @@
 use MooseX::Declare;
 
+
+class Black::Board::Topic
+    with Black::Board::Trait::Traversable
+{
+    use Black::Board::Types qw(
+        Message
+        TopicName
+        Subscriber
+        SubscriberList
+        Publisher
+    );
+    use Bread::Board::Types;
+    use Moose::Autobox;
+    use MooseX::Types::Perl qw( PackageName );
+
+
+    has 'name' => (
+        is => 'ro',
+        isa => TopicName,
+        required => 1
+    );
+
+
+    has 'subscribers' => (
+        is => 'rw',
+        traits => [ 'Array' ],
+        isa => SubscriberList,
+        default => sub { [] },
+        coerce => 1,
+        handles => {
+            has_subscribers => 'count',
+            add_subscriber  => 'push',
+            subscriber_list => 'elements'
+        }
+    );
+
+
+    has 'message_class' => (
+        is => 'rw',
+        isa => PackageName,
+        default => 'Black::Boad::Message'
+    );
+
+
+    method wants_message( Message $message ) {
+        return 1;
+    }
+
+
+    method valid_message( Message $message ) {
+        return $message->isa( $self->message_class );
+    }
+
+
+    method deliver( Publisher :$publisher, Subscriber :$subscriber, Message :$message ) {
+
+        # first give a chance for soft failure
+        return unless $self->wants_message( $message );
+
+        # the message was sent directly to these topics
+        # it is a logic error at this point for messages
+        # to be invalid for the topic
+        confess "Invalid message $message for $self"
+            unless $self->valid_message( $message );
+
+        return $subscriber->deliver(
+            message   => $message,
+            topic     => $self,
+            publisher => $publisher
+        );
+    }
+}
+
+1;
+
+
+__END__
 =pod
 
-=head1 SYNOPSIS
+=head1 NAME
 
+Black::Board::Topic
+
+=head1 VERSION
+
+version 0.0001
+
+=head1 SYNOPSIS
 
     my $logger = new Log::Dispatch(
         outputs => [
@@ -30,7 +114,6 @@ use MooseX::Declare;
             level => "alert"
         };
 
-
 =head1 DESCRIPTION
 
 A topic has a list of subscribers. It also has a say in what kinds of messages
@@ -45,103 +128,38 @@ This is one pieces in the puzzle.
 
 B<<<Put reference to overview material here once it's written.>>>
 
-=cut
+=head1 ATTRIBUTES
 
-class Black::Board::Topic
-    with Black::Board::Trait::Traversable
-{
-    use Black::Board::Types qw(
-        Message
-        TopicName
-        Subscriber
-        Publisher
-    );
-    use Bread::Board::Types;
-    use Moose::Autobox;
-    use MooseX::Types::Perl qw( PackageName );
-
-=attr C<name>
+=head2 C<name>
 
 Each topic must have a name and this attribute contains the name. The name is
 used to identify the Topic for message dispatch and subscrition.
 
-=cut
-
-    has 'name' => (
-        is => 'ro',
-        isa => TopicName,
-        required => 1
-    );
-
-=attr C<subscribers>
+=head2 C<subscribers>
 
 This attribute holdes an array of subscribers which have subscribed to this
 topic.
 
-=cut
-
-    has 'subscribers' => (
-        is => 'rw',
-        traits => [ 'Array' ],
-        isa => SubscriberList,
-        default => sub { [] },
-        coerce,
-        handles => {
-            has_subscribers => 'length',
-            add_subscriber  => 'push',
-            subscriber_list => 'elements'
-        }
-    );
-
-=attr C<message_class>
+=head2 C<message_class>
 
 This is the class of the message object this topic's subscribers expect to get.
 This defaults to L<Black::Board::Message::Simple>, a message with a C<param()>
 interface.
 
-=cut
+=head1 METHODS
 
-    has 'message_class' => (
-        is => 'rw',
-        isa => PackageName,
-        default => 'Black::Boad::Message::Simple'
-    );
-
-=method C<wants_message>
+=head2 C<wants_message>
 
 A softer version of L</METHODS/valid_message>. Returning false from here will
 cause L</METHODS/deliver> to skip the current topic. The default returns true.
 
-=cut
-
-    method wants_message( Message $message ) {
-        return 1;
-    }
-
-=method C<valid_message>
+=head2 C<valid_message>
 
 Returning false will cause L</METHODS/deliver> to throw
 an exception. The default implementation of this just check that the message C<isa()>
 C<message_class()>.
 
-=cut
-
-    method valid_message( Message $message ) {
-        return $message->isa( $self->message_class );
-    }
-
-=method C<create_message>
-
-Constructs a message of class L</ATTRIBUTES/message_class> with the hash ref of
-options specified.
-
-=cut
-
-    method create_message( HashRef $options = {} ) {
-        return $self->message_class->new( $options );
-    }
-
-=method C<deliver>
+=head2 C<deliver>
 
 This method is usually called by L<Black::Board::Publisher/METHODS/publish>. It
 takes two positional/named parameters. The first is C<publisher>. This should
@@ -157,26 +175,16 @@ fails.
 See L<Black::Board::Subscriber/ATTRIBUTES/subscription> to see how the
 subscription is dispatched.
 
+=head1 AUTHOR
+
+Scott Beck <scottbeck@gmail.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
 =cut
-
-    method deliver( Publisher :$publisher, Subscriber :$subscriber, Message :$message ) {
-
-        # first give a chance for soft failure
-        return unless $self->wants_message( $message );
-
-        # the message was sent directly to these topics
-        # it is a logic error at this point for messages
-        # to be invalid for the topic
-        confess "Invalid message $message for $topic"
-            unless $self->valid_message( $message );
-
-        return $subscriber->deliver(
-            message   => $message,
-            topic     => $self,
-            publisher => $publisher
-        );
-    }
-}
-
-1;
 

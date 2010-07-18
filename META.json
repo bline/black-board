@@ -1,0 +1,54 @@
+{
+   "abstract" : "publish messages and subscribe to topics",
+   "author" : [
+      "Scott Beck <scottbeck@gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 4.101980, CPAN::Meta::Converter version 2.101670",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Black-Board",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.31"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Bread::Board::Types" : 0,
+            "Moose" : 0,
+            "Moose::Autobox" : 0,
+            "Moose::Exporter" : 0,
+            "Moose::Util::TypeConstraints" : 0,
+            "MooseX::ClassAttribute" : 0,
+            "MooseX::Declare" : 0,
+            "MooseX::Types" : 0,
+            "MooseX::Types::Moose" : 0,
+            "MooseX::Types::Perl" : 0,
+            "Scalar::Util" : 0
+         }
+      },
+      "test" : {
+         "requires" : {
+            "English" : 0,
+            "Test::More" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/bline/black-board.git",
+         "web" : "http://github.com/bline/black-board"
+      }
+   },
+   "version" : "0.0001"
+}
+
