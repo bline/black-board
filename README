@@ -25,7 +25,11 @@ SYNOPSIS
         $log_topic->add_subscriber(
             Black::Board::Subscriber->new(
                 subscription => sub {
-                    $logger->log( %{ $_->params } );
+                    if ( $logger->would_log( $_->params->{level} ) ) {
+                        $logger->log( %{ $_->params } );
+                        # Let the caller have a way to check if we logged
+                        $_->params->{log_sent_for} = $_->params->{level};
+                    }
                     return $_->cancel_bubble;
                 }
             )
@@ -44,7 +48,7 @@ SYNOPSIS
         );
 
         $publisher->publish(
-            topics  => [ 'LogDispatch' ],
+            topic  => 'LogDispatch',
             message => {
                 params => {
                     message => "Something that needs logging",
@@ -69,10 +73,8 @@ SYNOPSIS
         };
 
         subscriber LogDispatch => sub {
-            return $_->clone(
-                params => $_->params->merge( {
-                    message => '[Prefix] ' . $_->params->{message}
-                } )
+            return $_->clone_with_params(
+                message => '[Prefix] ' . $_->params->{message}
             )
         };
 
@@ -92,9 +94,13 @@ DESCRIPTION
     from it.
 
     The purpose of this module is to provide a publisher/subscriber
-    interface for passing messages.
+    interface for passing messages. This subscriber interface has the
+    ability for subscribers to act as filters on the message. Each
+    subscriber can return a modified copy of the message. The message is
+    cloned because the same message object should be able to be sent on
+    multiple dispatch chains.
 
-METHODS
+FUNCTIONS
   "topic"
     First argument is the topic name to create. All other arguments are
     passed off to "METHODS/subscriber" as new subscription callbacks.
@@ -113,6 +119,19 @@ METHODS
     you specify a hash reference here it will be coerced into a
     Black::Board::Message object correct for this Topic.
 
+EXPORTS
+    * topic * subscriber * publish
+
+SEE ALSO
+    * Black::Board::Publisher Dispatcher and owner of Topics *
+    Black::Board::Topic A Topic object is a place to subclass for custom
+    Topics that handle something more complicated than a "param()" based
+    message. * Black::Board::Message A param based Message. Subclass for a
+    more complicated Message. * Black::Board::Subscriber Encapsulates
+    subscriber hooks to maintain consistent calling conventions. *
+    Black::Board::Types If you are doing any subclassing, look here for the
+    MooseX::Types.
+
 AUTHOR
     Scott Beck <scottbeck@gmail.com>
 
@@ -122,10 +141,17 @@ COPYRIGHT AND LICENSE
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.
 
+CLASS ATTRIBUTES
+  Publisher
+    This is the singleton Publisher object. You can set this to a different
+    Publisher object but you should do this before you start declaring
+    Topics or be prepared to copy the previously registered Topics into the
+    new object.
+
 POD ERRORS
     Hey! The above document had some coding errors, which are explained
     below:
 
-    Around line 182:
+    Around line 185:
         =back without =over
 

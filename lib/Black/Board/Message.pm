@@ -17,6 +17,13 @@ class Black::Board::Message
     method cancel_bubble {
         return $self->clone( bubble => 0 );
     }
+
+
+    method clone_with_params( HashRef $params ) {
+        return $self->clone(
+            params => $self->params->merge( $params )
+        );
+    }
 }
 
 
@@ -52,6 +59,8 @@ set to false in the clone.
 
 * An example of an end-point is the subscriber in a LogDispatch subscription
 chain that dispatches to the log object. 
+
+=head2 C<clone_with_params>
 
 =head1 SEE ALSO
 

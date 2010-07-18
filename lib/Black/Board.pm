@@ -19,12 +19,12 @@ class Black::Board {
     use Black::Board::Message;
 
     Moose::Exporter->setup_import_methods(
-        with_meta  => [ qw( topic ) ],
-        as_as      => [ qw( subscriber publish topic ) ]
+        as_as      => [ qw( topic subscriber publish ) ]
     );
 
+
     class_has Publisher => (
-        is => 'ro',
+        is => 'rw',
         isa => Publisher,
         lazy_build => 1,
     );
@@ -78,6 +78,7 @@ class Black::Board {
     }
 }
 
+
 1;
 
 
@@ -114,7 +115,11 @@ version 0.0001
     $log_topic->add_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
-                $logger->log( %{ $_->params } );
+                if ( $logger->would_log( $_->params->{level} ) ) {
+                    $logger->log( %{ $_->params } );
+                    # Let the caller have a way to check if we logged
+                    $_->params->{log_sent_for} = $_->params->{level};
+                }
                 return $_->cancel_bubble;
             }
         )
@@ -133,7 +138,7 @@ version 0.0001
     );
 
     $publisher->publish(
-        topics  => [ 'LogDispatch' ],
+        topic  => 'LogDispatch',
         message => {
             params => {
                 message => "Something that needs logging",
@@ -158,10 +163,8 @@ version 0.0001
     };
 
     subscriber LogDispatch => sub {
-        return $_->clone(
-            params => $_->params->merge( {
-                message => '[Prefix] ' . $_->params->{message}
-            } )
+        return $_->clone_with_params(
+            message => '[Prefix] ' . $_->params->{message}
         )
     };
 
@@ -185,9 +188,12 @@ This code is inspired by L<Bread::Board> and even a few bits were stolen from
 it.
 
 The purpose of this module is to provide a publisher/subscriber interface for
-passing messages.
+passing messages. This subscriber interface has the ability for subscribers to
+act as filters on the message. Each subscriber can return a modified copy of the
+message.  The message is cloned because the same message object should be able
+to be sent on multiple dispatch chains.
 
-=head1 METHODS
+=head1 FUNCTIONS
 
 =head2 C<topic>
 
@@ -210,6 +216,38 @@ argument should be the message object we are publishing. If you specify a hash
 reference here it will be coerced into a L<Black::Board::Message> object
 correct for this L<Topic|Black::Board::Topic>.
 
+=head1 EXPORTS
+
+=over 4
+
+
+
+=back
+
+* topic
+* subscriber
+* publish
+
+=head1 SEE ALSO
+
+=over 4
+
+
+
+=back
+
+* L<Black::Board::Publisher>
+Dispatcher and owner of Topics
+* L<Black::Board::Topic>
+A Topic object is a place to subclass for custom Topics that handle something
+more complicated than a C<param()> based message.
+* L<Black::Board::Message>
+A param based Message. Subclass for a more complicated Message.
+* L<Black::Board::Subscriber>
+Encapsulates subscriber hooks to maintain consistent calling conventions.
+* L<Black::Board::Types>
+If you are doing any subclassing, look here for the MooseX::Types.
+
 =head1 AUTHOR
 
 Scott Beck <scottbeck@gmail.com>
@@ -220,6 +258,14 @@ This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 CLASS ATTRIBUTES
+
+=head2 Publisher
+
+This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
+a different Publisher object but you should do this before you start declaring Topics or
+be prepared to copy the previously registered Topics into the new object.
 
 =cut
 
