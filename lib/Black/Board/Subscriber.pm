@@ -32,6 +32,7 @@ class Black::Board::Subscriber
     }
 }
 
+
 1;
 
 
@@ -162,6 +163,22 @@ C<publisher>, the L<Publisher|Black::Board::Publisher> object that is
 dispatching this L<Message|Black::Board::Message>.
 
 See L</ATTRIBUTES/subscription> to see how the subscription is dispatched.
+
+=over 4
+
+=item *
+
+L<Black::Board::Message> - object being delivered to Subscribers
+
+=item *
+
+L<Black::Board::Topic> - delivers L<Messages|Black::Board::Message> to Subscribers
+
+=item *
+
+L<Black::Board> - provides sugar syntax
+
+=back
 
 =head1 AUTHOR
 

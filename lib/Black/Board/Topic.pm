@@ -73,6 +73,7 @@ class Black::Board::Topic
     }
 }
 
+
 1;
 
 
@@ -172,6 +173,24 @@ fails.
 
 See L<Black::Board::Subscriber/ATTRIBUTES/subscription> to see how the
 subscription is dispatched.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board::Publisher> - publishes Messages to Topics
+
+=item *
+
+L<Black::Board::Subscriber> - the object a Topic delivers a message to
+
+=item *
+
+L<Black::Board> - provides sugar syntax to do all this
+
+=back
 
 =head1 AUTHOR
 

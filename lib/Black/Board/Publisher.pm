@@ -92,6 +92,7 @@ class Black::Board::Publisher
     }
 }
 
+
 1;
 
 __END__
@@ -153,6 +154,24 @@ Takes a L<Black::Board::Types/TYPES/Topic> or L<Black::Board::Types/TYPES/TopicN
 L<Black::Board::Types/TYPES/Message>. The message is dispatched to the
 subscribers of the topics. The final message returned by the subscriber is
 returned.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Black::Board::Message> - objects being dispatched to L<Topics|Black::Board::Topic>.
+
+=item *
+
+L<Black::Board::Topic> - topic objects contained and dispatched to by a Publisher
+
+=item *
+
+L<Black::Board> - provides sugar syntax to a singleton Publisher
+
+=back
 
 =head1 AUTHOR
 

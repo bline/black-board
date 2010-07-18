@@ -59,11 +59,11 @@ chain that dispatches to the log object.
 
 =item *
 
-L<Black::Board::Publisher> - publishes Messages to L<Topic|Black::Board::Topic>s
+L<Black::Board::Publisher> - publishes Messages to L<Topics|Black::Board::Topic>
 
 =item *
 
-L<Black::Board::Topic> - delivers Messages to L<Black::Board::Subscriber>s
+L<Black::Board::Topic> - delivers Messages to L<Subscribers|Black::Board::Subscriber>
 
 =item *
 

@@ -7,8 +7,6 @@ Makefile.PL
 README
 SIGNATURE
 dist.ini
-graph.png
-graph.yml
 lib/Black/Board.pm
 lib/Black/Board/Manual.pod
 lib/Black/Board/Message.pm
