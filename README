@@ -120,17 +120,34 @@ FUNCTIONS
     Black::Board::Message object correct for this Topic.
 
 EXPORTS
-    * topic * subscriber * publish
+    *   topic
+
+    *   subscriber
+
+    *   publish
 
 SEE ALSO
-    * Black::Board::Publisher Dispatcher and owner of Topics *
-    Black::Board::Topic A Topic object is a place to subclass for custom
-    Topics that handle something more complicated than a "param()" based
-    message. * Black::Board::Message A param based Message. Subclass for a
-    more complicated Message. * Black::Board::Subscriber Encapsulates
-    subscriber hooks to maintain consistent calling conventions. *
-    Black::Board::Types If you are doing any subclassing, look here for the
-    MooseX::Types.
+    *   Black::Board::Publisher
+
+        Dispatcher and owner of Topics
+
+    *   Black::Board::Topic
+
+        A Topic object is a place to subclass for custom Topics that handle
+        something more complicated than a "param()" based message.
+
+    *   Black::Board::Message
+
+        A param based Message. Subclass for a more complicated Message.
+
+    *   Black::Board::Subscriber
+
+        Encapsulates subscriber hooks to maintain consistent calling
+        conventions.
+
+    *   Black::Board::Types
+
+        If you are doing any subclassing, look here for the MooseX::Types.
 
 AUTHOR
     Scott Beck <scottbeck@gmail.com>

@@ -220,33 +220,56 @@ correct for this L<Topic|Black::Board::Topic>.
 
 =over 4
 
+=item *
 
+topic
+
+=item *
+
+subscriber
+
+=item *
+
+publish
 
 =back
-
-* topic
-* subscriber
-* publish
 
 =head1 SEE ALSO
 
 =over 4
 
+=item *
 
+L<Black::Board::Publisher>
 
-=back
-
-* L<Black::Board::Publisher>
 Dispatcher and owner of Topics
-* L<Black::Board::Topic>
+
+=item *
+
+L<Black::Board::Topic>
+
 A Topic object is a place to subclass for custom Topics that handle something
 more complicated than a C<param()> based message.
-* L<Black::Board::Message>
+
+=item *
+
+L<Black::Board::Message>
+
 A param based Message. Subclass for a more complicated Message.
-* L<Black::Board::Subscriber>
+
+=item *
+
+L<Black::Board::Subscriber>
+
 Encapsulates subscriber hooks to maintain consistent calling conventions.
-* L<Black::Board::Types>
+
+=item *
+
+L<Black::Board::Types>
+
 If you are doing any subclassing, look here for the MooseX::Types.
+
+=back
 
 =head1 AUTHOR
 
