@@ -52,6 +52,27 @@ SYNOPSIS
             )
         );
 
+        my $other_logger = Log::Dispatch->new(
+            outputs => [
+                [ File => (
+                    'filename'  => 'intercepted-error.log'
+                ) ]
+            ]
+        );
+
+        $log_topic->add_subscriber(
+            Black::Board::Subscriber->new(
+                subscription => sub {
+                    if ( $other_logger->would_log( $_->params->{level} ) ) {
+                        $other_logger->log( %{ $_->params } );
+                        # Let the caller have a way to check if we logged
+                        $_->params->{other_log_sent_for} = $_->params->{level};
+                    }
+                    return $_;
+                }
+            )
+        );
+
         $publisher->publish(
             topic  => 'LogDispatch',
             message => {
@@ -73,8 +94,29 @@ SYNOPSIS
 
         # any arguments beyond the first are passed off to subscriber
         topic LogDispatch => sub {
-            $logger->log( %{ $_->params } );
+            if ( $logger->would_log( $_->params->{level} ) ) {
+                $logger->log( %{ $_->params } );
+                # Let the caller have a way to check if we logged
+                $_->params->{log_sent_for} = $_->params->{level};
+            }
             return $_->cancel_bubble;
+        };
+
+        my $other_logger = Log::Dispatch->new(
+            outputs => [
+                [ File => (
+                    'filename'  => 'intercepted-error.log'
+                ) ]
+            ]
+        );
+
+        subscriber LogDispatch, sub {
+            if ( $other_logger->would_log( $_->params->{level} ) ) {
+                $other_logger->log( %{ $_->params } );
+                # Let the caller have a way to check if we logged
+                $_->params->{other_log_sent_for} = $_->params->{level};
+            }
+            return $_;
         };
 
         subscriber LogDispatch => sub {
@@ -84,10 +126,14 @@ SYNOPSIS
         };
 
         publish LogDispatch => 
-            params => {
-                message => "Something that needs logging",
-                level   => "alert"
-            };
+            message => "Something that needs logging",
+            level   => "alert"
+            # -params has presidence
+            -params => {
+                # level is now changed to debug
+                level => "debug",
+                more => "parameters merged with presidence"
+            }
 
 DESCRIPTION
     This code is inspired by Bread::Board and even a few bits were stolen
@@ -107,10 +153,25 @@ CLASS ATTRIBUTES
     Topics or be prepared to copy the previously registered Topics into the
     new object.
 
+  TopicClass
+  PublisherClass
 FUNCTIONS
   "topic"
-    First argument is the topic name to create. All other arguments are
+    First argument is the topic name to create, any additional argument are
     passed off to "METHODS/subscriber" as new subscription callbacks.
+
+    If the topic name already exists in the singleton "CLASS
+    ATTRIBUTES/Publisher":
+
+    1   If subscribers are specified, the scubscribers will be subscribed to
+        the
+
+        already existing topic.
+
+    2   If no subscribers are specified this topic call is an apparent no-op
+        but
+
+        does ensure the topic is created
 
   "subscriber"
     Create a new Black::Board::Subscription object and adds it to the topic
@@ -120,11 +181,87 @@ FUNCTIONS
     "subscription" callback.
 
   "publish"
-    Publishes the given message to the given topics. The first argument can
-    be the topic name or an array reference of topic names to publish to.
-    The second argument should be the message object we are publishing. If
-    you specify a hash reference here it will be coerced into a
-    Black::Board::Message object correct for this Topic.
+    Publishes the given message to the given topic.
+
+    Takes two conceptual arguments:
+
+    The first argument can be the Black::Board::Topic object. If the first
+    argument is a "TYPES/TopicName" in Black::Board::Types, it will be
+    coerced by looking up the "TopicName" in the "CLASS
+    ATTRIBUTES/Publisher". That failing, an exception will be thrown.
+
+    Next you can pass in either a "HashRef" or a "Hash" (list of key/value
+    pairs) which is converted into a "HashRef". This "HashRef" is taken as
+    meta information for creating a Black::Board::Message object. All keys
+    except those which start with a dash "-" are treated as
+    "<Mmessage-"params>> key/value pairs.
+
+    These are roughly equivalent:
+
+        # simplest
+        publish LogDispatch =>
+            message => "I got here",
+            level   => "debug";
+
+    and
+
+        # can use a hash reference
+        publish LogDispatch => {
+            message => "I got here",
+            level   => "debug"
+        };
+
+    Keys which start with a dash "-", have the dash removed and are passed
+    along to the "Black::Board::Message" constructor. for example:
+
+        publish Foo =>
+            -params => {
+                hi => "there"
+            };
+
+    Here are some more equivalent examples matching the ones above:
+
+        # ditch sugar completely
+        Black::Board->Publisher->publish(
+            topic   => Black::Board->Publisher->topic(
+                "LogDispatch"
+            ),
+            message => Black::Board::Message->new(
+                params => {
+                    message => "I got here",
+                    level   => "debug"
+                }
+            )
+        );
+
+    and
+
+        # pass in the message as an object, maybe the same object from a previous
+        # call to publish
+        publish LogDispatch =>
+            Black::Board::Message->new(
+                params => {
+                    message => "I got here",
+                    level   => "debug"
+                }
+            );
+
+    and
+
+        # pass in the topic and message as objects
+        publish
+            Black::Board->Publisher->topic(
+                "LogDispatch"
+            ),
+            Black::Board::Message->new(
+                params => {
+                    message => "I got here",
+                    level   => "debug"
+                }
+            );
+
+    NB: If you have a "-params" argument as well as non-dash arguments, the
+    "-params" argument will be merged and will take presidence.
 
 EXPORTS
     *   topic

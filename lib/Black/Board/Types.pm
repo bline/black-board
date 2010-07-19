@@ -53,6 +53,9 @@ class Black::Board::Types {
 
 
     class_type Topic, { class => 'Black::Board::Topic' };
+    coerce Topic,
+        from TopicName,
+            via { Black::Board->Publisher->get_topic( $_[0] ) };
 
 
     subtype TopicList,

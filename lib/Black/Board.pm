@@ -6,16 +6,16 @@ use MooseX::Declare;
 
 class Black::Board {
 
-
-
     use Scalar::Util qw( blessed reftype );
 
     use Moose;
     use Moose::Autobox;
     use Moose::Exporter;
     use MooseX::ClassAttribute;
+    use MooseX::Types::Moose qw( ArrayRef CodeRef ClassName Str );
+    use MooseX::Params::Validate;
 
-    use Black::Board::Types qw( Publisher );
+    use Black::Board::Types qw( Publisher Message Topic );
     use Black::Board::Publisher;
     use Black::Board::Subscriber;
     use Black::Board::Message;
@@ -25,6 +25,8 @@ class Black::Board {
     );
 
 
+
+
     class_has Publisher => (
         is => 'rw',
         isa => Publisher,
@@ -32,29 +34,55 @@ class Black::Board {
     );
 
     sub _build_Publisher {
-        return Black::Board::Publisher->new;
+        return __PACKAGE__->PublisherClass->new;
     }
 
 
-    sub topic ($$) {
-        my $name = shift;
-        my $topic = Black::Board::Topic->new(
-            name => $name,
+    class_has TopicClass => (
+        is      => 'rw',
+        isa     => ClassName,
+        default => 'Black::Board::Topic'
+    );
+
+
+    class_has PublisherClass => (
+        is      => 'rw',
+        isa     => ClassName,
+        default => 'Black::Board::Publisher'
+    );
+
+
+    sub topic ($@) {
+        my ( $name, $subscriptions ) = pos_validate_list(
+            [ shift, [ @_ ] ],
+            { isa => TopicName, required => 1 }
+            { isa => ArrayRef[CodeRef] }
         );
-        __PACKAGE__->Publisher->add_topic( $topic );
-        subscriber( $topic, $_ ) for @_;
+
+        # if the topic already exists:
+        #   1. If subscribers are specified, the scubscribers will be
+        #   subscribed to the already existing topic.
+        #   2. If no subscribers are specified this topic call is an apparent
+        #   no-op but does ensure the topic is created
+        my $topic = __PACKAGE__->Publisher->get_topic( $name );
+        unless ( $topic ) {
+            $topic = __PACKAGE__->TopicClass->new( name => $name );
+            __PACKAGE__->Publisher->add_topic( $topic );
+        }
+
+
+        subscriber( $topic, $_ ) for $subscriptions->flatten;
+
         return $topic;
     }
 
 
     sub subscriber ($&) {
-        my $topic = shift;
-        $topic = __PACKAGE__->Publisher->get_topic( $topic )
-            unless blessed( $topic );
-
-        my $subscription = shift;
-        confess "Invalid subscription '$subscription'"
-            unless reftype( $subscription ) eq 'CODE';
+        my ( $topic, $subscription ) = pos_validated_list(
+            \@_,
+            { isa => Topic, coerce => 1, required => 1 },
+            { isa => CodeRef, required => 1 },
+        );
 
         $subscription = Black::Board::Subscriber->new(
             subscription => $subscription
@@ -65,13 +93,31 @@ class Black::Board {
 
 
     sub publish ($@) {
-        my $topic = shift;
-        $topic = __PACKAGE__->Publisher->get_topic( $topic )
-            unless blessed( $topic );
+        my ( $topic, $maybe_message ) = pos_validated_list(
+            [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
+            { isa => Topic, coerce => 1, required => 1 },
+            { isa => Message|HashRef, required => 1 }
+        );
 
-        my $message = @_ == 1 && blessed( $_[0] )
-            ? shift
-            : { @_ };
+        my $message;
+        if ( blessed $maybe_message ) {
+            $message = $maybe_message;
+        }
+        else {
+            my $h = $maybe_message;
+            # removes all parameters that start with a dash
+            # these are used as top level parameters to to_Message()
+            my %p = $h->keys->grep( sub { /^-/ } )->map( sub {
+                ( my $cp = $_ ) = s/^-//;
+                ( $cp => $h->delete( $_ ) );
+            });
+            # all other parameters are merged with params, -params taking presidence
+            $p{params} = $h->merge( $p{params} || {} );
+
+            $message = $topic->message_class->new( \%p );
+        }
+
+        # incase we add subtopics later
         $message = $topic->parent->publish(
             topic   => $topic,
             message => $message
@@ -145,6 +191,27 @@ version release. Use at your own risk!
         )
     );
 
+    my $other_logger = Log::Dispatch->new(
+        outputs => [
+            [ File => (
+                'filename'  => 'intercepted-error.log'
+            ) ]
+        ]
+    );
+
+    $log_topic->add_subscriber(
+        Black::Board::Subscriber->new(
+            subscription => sub {
+                if ( $other_logger->would_log( $_->params->{level} ) ) {
+                    $other_logger->log( %{ $_->params } );
+                    # Let the caller have a way to check if we logged
+                    $_->params->{other_log_sent_for} = $_->params->{level};
+                }
+                return $_;
+            }
+        )
+    );
+
     $publisher->publish(
         topic  => 'LogDispatch',
         message => {
@@ -166,8 +233,29 @@ version release. Use at your own risk!
 
     # any arguments beyond the first are passed off to subscriber
     topic LogDispatch => sub {
-        $logger->log( %{ $_->params } );
+        if ( $logger->would_log( $_->params->{level} ) ) {
+            $logger->log( %{ $_->params } );
+            # Let the caller have a way to check if we logged
+            $_->params->{log_sent_for} = $_->params->{level};
+        }
         return $_->cancel_bubble;
+    };
+
+    my $other_logger = Log::Dispatch->new(
+        outputs => [
+            [ File => (
+                'filename'  => 'intercepted-error.log'
+            ) ]
+        ]
+    );
+
+    subscriber LogDispatch, sub {
+        if ( $other_logger->would_log( $_->params->{level} ) ) {
+            $other_logger->log( %{ $_->params } );
+            # Let the caller have a way to check if we logged
+            $_->params->{other_log_sent_for} = $_->params->{level};
+        }
+        return $_;
     };
 
     subscriber LogDispatch => sub {
@@ -177,10 +265,14 @@ version release. Use at your own risk!
     };
 
     publish LogDispatch => 
-        params => {
-            message => "Something that needs logging",
-            level   => "alert"
-        };
+        message => "Something that needs logging",
+        level   => "alert"
+        # -params has presidence
+        -params => {
+            # level is now changed to debug
+            level => "debug",
+            more => "parameters merged with presidence"
+        }
 
 =head1 DESCRIPTION
 
@@ -201,12 +293,34 @@ This is the singleton L<Publisher|Black::Board::Publisher> object. You can set t
 a different Publisher object but you should do this before you start declaring Topics or
 be prepared to copy the previously registered Topics into the new object.
 
+=head2 TopicClass
+
+=head2 PublisherClass
+
 =head1 FUNCTIONS
 
 =head2 C<topic>
 
-First argument is the topic name to create. All other arguments are passed off
-to L</METHODS/subscriber> as new subscription callbacks.
+First argument is the topic name to create, any additional argument are passed
+off to L</METHODS/subscriber> as new subscription callbacks.
+
+If the topic name already exists in the singleton L</CLASS ATTRIBUTES/Publisher>:
+
+=over 4
+
+=item 1
+
+If subscribers are specified, the scubscribers will be subscribed to the
+
+already existing topic.
+
+=item 2
+
+If no subscribers are specified this topic call is an apparent no-op but
+
+does ensure the topic is created
+
+=back
 
 =head2 C<subscriber>
 
@@ -218,11 +332,87 @@ callback.
 
 =head2 C<publish>
 
-Publishes the given message to the given topics. The first argument can be the
-topic name or an array reference of topic names to publish to. The second
-argument should be the message object we are publishing. If you specify a hash
-reference here it will be coerced into a L<Black::Board::Message> object
-correct for this L<Topic|Black::Board::Topic>.
+Publishes the given message to the given topic.
+
+Takes two conceptual arguments:
+
+The first argument can be the L<Black::Board::Topic> object. If the first
+argument is a L<Black::Board::Types/TYPES/TopicName>, it will be coerced by
+looking up the C<TopicName> in the L</CLASS ATTRIBUTES/Publisher>.  That
+failing, an exception will be thrown.
+
+Next you can pass in either a C<HashRef> or a C<Hash> (list of key/value pairs)
+which is converted into a C<HashRef>.  This C<HashRef> is taken as meta
+information for creating a L<Black::Board::Message> object. All keys except
+those which start with a dash C<-> are treated as C<<Mmessage->params>>
+key/value pairs.
+
+These are roughly equivalent:
+
+    # simplest
+    publish LogDispatch =>
+        message => "I got here",
+        level   => "debug";
+
+and
+
+    # can use a hash reference
+    publish LogDispatch => {
+        message => "I got here",
+        level   => "debug"
+    };
+
+Keys which start with a dash C<->, have the dash removed and are passed along
+to the C<Black::Board::Message> constructor. for example:
+
+    publish Foo =>
+        -params => {
+            hi => "there"
+        };
+
+Here are some more equivalent examples matching the ones above:
+
+    # ditch sugar completely
+    Black::Board->Publisher->publish(
+        topic   => Black::Board->Publisher->topic(
+            "LogDispatch"
+        ),
+        message => Black::Board::Message->new(
+            params => {
+                message => "I got here",
+                level   => "debug"
+            }
+        )
+    );
+
+and
+
+    # pass in the message as an object, maybe the same object from a previous
+    # call to publish
+    publish LogDispatch =>
+        Black::Board::Message->new(
+            params => {
+                message => "I got here",
+                level   => "debug"
+            }
+        );
+
+and
+
+    # pass in the topic and message as objects
+    publish
+        Black::Board->Publisher->topic(
+            "LogDispatch"
+        ),
+        Black::Board::Message->new(
+            params => {
+                message => "I got here",
+                level   => "debug"
+            }
+        );
+
+NB: If you have a C<-params> argument as well as non-dash arguments, the
+C<-params> argument will be merged and will take presidence.
 
 =head1 EXPORTS
 

@@ -22,6 +22,7 @@ requires:
   MooseX::ClassAttribute: 0
   MooseX::Clone: 0
   MooseX::Declare: 0
+  MooseX::Params::Validate: 0
   MooseX::Types: 0
   MooseX::Types::Moose: 0
   Scalar::Util: 0

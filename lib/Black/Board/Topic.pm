@@ -105,18 +105,14 @@ version 0.0001
     };
 
     subscriber LogDispatch => sub {
-        return $_->clone(
-            params => $_->params->merge( {
-                message => '[Prefix] ' . $_->params->{message}
-            } )
+        return $_->clone_with_params(
+            message => '[Prefix] ' . $_->params->{message}
         )
     };
 
     publish LogDispatch => 
-        params => {
-            message => "Something that needs logging",
-            level => "alert"
-        };
+        message => "Something that needs logging",
+        level => "alert";
 
 =head1 DESCRIPTION
 

@@ -18,6 +18,7 @@ lib/Black/Board/Trait/Traversable.pm
 lib/Black/Board/Types.pm
 lib/Black/Board/black-board.dia
 t/01-use.t
+t/02-message.t
 t/author-critic.t
 t/release-kwalitee.t
 t/release-no-tabs.t
