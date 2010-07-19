@@ -337,15 +337,15 @@ to be sent on multiple dispatch chains.
 
 =head1 CLASS ATTRIBUTES
 
-=head2 Publisher
+=head2 C<Publisher>
 
 This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
 a different Publisher object but you should do this before you start declaring Topics or
 be prepared to copy the previously registered Topics into the new object.
 
-=head2 TopicClass
+=head2 C<TopicClass>
 
-=head2 PublisherClass
+=head2 C<PublisherClass>
 
 =head1 FUNCTIONS
 

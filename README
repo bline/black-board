@@ -164,14 +164,14 @@ DESCRIPTION
     multiple dispatch chains.
 
 CLASS ATTRIBUTES
-  Publisher
+  "Publisher"
     This is the singleton Publisher object. You can set this to a different
     Publisher object but you should do this before you start declaring
     Topics or be prepared to copy the previously registered Topics into the
     new object.
 
-  TopicClass
-  PublisherClass
+  "TopicClass"
+  "PublisherClass"
 FUNCTIONS
   "topic"
     First argument is the topic name to create, any additional argument are
