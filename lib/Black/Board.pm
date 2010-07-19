@@ -125,7 +125,7 @@ class Black::Board {
             ( $cp => $opt->delete( $_ ) );
         } );
 
-        # all other parameters are merged with params, -params taking presidence
+        # all other parameters are merged with params, -params taking precedence
         $p{params} = $opt->merge( $p{params} || {} );
 
         # the topic gets to say what type of message it wants. so you
@@ -315,13 +315,13 @@ version release. Use at your own risk!
         message => "Something that needs logging",
         level   => "alert"
 
-        # -params has presidence
+        # -params has precedence
         -params => {
 
             # level is now changed to debug
             level => "debug",
 
-            more => "parameters merged with presidence"
+            more => "parameters merged with precedence"
         }
 
 =head1 DESCRIPTION
@@ -462,7 +462,7 @@ and
         );
 
 NB: If you have a C<-params> argument as well as non-dash arguments, the
-C<-params> argument will be merged and will take presidence.
+C<-params> argument will be merged and will take precedence.
 
 =head1 EXPORTS
 

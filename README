@@ -143,13 +143,13 @@ SYNOPSIS
             message => "Something that needs logging",
             level   => "alert"
 
-            # -params has presidence
+            # -params has precedence
             -params => {
 
                 # level is now changed to debug
                 level => "debug",
 
-                more => "parameters merged with presidence"
+                more => "parameters merged with precedence"
             }
 
 DESCRIPTION
@@ -278,7 +278,7 @@ FUNCTIONS
             );
 
     NB: If you have a "-params" argument as well as non-dash arguments, the
-    "-params" argument will be merged and will take presidence.
+    "-params" argument will be merged and will take precedence.
 
 EXPORTS
     *   topic
