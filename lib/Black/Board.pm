@@ -95,6 +95,12 @@ Black::Board - publish messages and subscribe to topics
 
 version 0.0001
 
+=head1 WARNING WARNING WARNING
+
+This is alpha quality code. It's a running experiment at the moment. When
+things are flushed out a little I can make a few more promises on future
+changes. For now I can make no promises. Use at your own risk!
+
 =head1 SYNOPSIS
 
     use Log::Dispatch;
@@ -217,17 +223,6 @@ topic name or an array reference of topic names to publish to. The second
 argument should be the message object we are publishing. If you specify a hash
 reference here it will be coerced into a L<Black::Board::Message> object
 correct for this L<Topic|Black::Board::Topic>.
-
-=begin prelude
-
-=head1 WARNING WARNING WARNING
-
-This is alpha quality code. It's a running experiment at the moment. When
-things are flushed out a little I can make a few more promises on future
-changes. For now I can make no promises. Use at your own risk!
-
-
-=end prelude
 
 =head1 EXPORTS
 
