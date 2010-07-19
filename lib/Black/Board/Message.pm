@@ -88,11 +88,11 @@ L<Black::Board> - provides sugar syntax to do all this
 
 =head1 AUTHOR
 
-Scott Beck <scottbeck@gmail.com>
+Scott Beck <sabeck@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
+This software is copyright (c) 2010 by Scott Beck <sabeck@cpan.org>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

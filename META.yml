@@ -1,7 +1,7 @@
 ---
 abstract: 'publish messages and subscribe to topics'
 author:
-  - 'Scott Beck <scottbeck@gmail.com>'
+  - 'Scott Beck <sabeck@cpan.org>'
 build_requires:
   English: 0
   Test::More: 0

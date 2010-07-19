@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.31;
 
 my %WriteMakefileArgs = (
   'ABSTRACT' => 'publish messages and subscribe to topics',
-  'AUTHOR' => 'Scott Beck <scottbeck@gmail.com>',
+  'AUTHOR' => 'Scott Beck <sabeck@cpan.org>',
   'BUILD_REQUIRES' => {
     'English' => '0',
     'Test::More' => '0'

@@ -1,7 +1,7 @@
 {
    "abstract" : "publish messages and subscribe to topics",
    "author" : [
-      "Scott Beck <scottbeck@gmail.com>"
+      "Scott Beck <sabeck@cpan.org>"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Dist::Zilla version 4.101980, CPAN::Meta::Converter version 2.101670",

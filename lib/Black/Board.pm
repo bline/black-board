@@ -193,6 +193,14 @@ act as filters on the message. Each subscriber can return a modified copy of the
 message.  The message is cloned because the same message object should be able
 to be sent on multiple dispatch chains.
 
+=head1 CLASS ATTRIBUTES
+
+=head2 Publisher
+
+This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
+a different Publisher object but you should do this before you start declaring Topics or
+be prepared to copy the previously registered Topics into the new object.
+
 =head1 FUNCTIONS
 
 =head2 C<topic>
@@ -273,22 +281,14 @@ If you are doing any subclassing, look here for the MooseX::Types.
 
 =head1 AUTHOR
 
-Scott Beck <scottbeck@gmail.com>
+Scott Beck <sabeck@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Scott Beck <scottbeck@gmail.com>.
+This software is copyright (c) 2010 by Scott Beck <sabeck@cpan.org>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
-
-=head1 CLASS ATTRIBUTES
-
-=head2 Publisher
-
-This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
-a different Publisher object but you should do this before you start declaring Topics or
-be prepared to copy the previously registered Topics into the new object.
 
 =cut
 
