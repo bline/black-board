@@ -109,7 +109,7 @@ methods to add and remove topics.
 
 =head2 C<topics>
 
-Contains a E<quot>L<TopicList|Black::Board::Types/TYPES/TopicList>E<quot> registered to this
+Contains a L<Black::Board::Types/TYPES/TopicList> registered to this
 publisher. A C<TopicList> is an array reference of
 L<Topic|Black::Board::Types/TYPES/Topic> objects.
 
