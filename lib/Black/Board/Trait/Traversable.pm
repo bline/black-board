@@ -1,4 +1,8 @@
+use strict;
+use warnings;
 use MooseX::Declare;
+
+#ABSTRACT: gives you a parent and the ability to find root
 
 role Black::Board::Trait::Traversable
     with MooseX::Clone
