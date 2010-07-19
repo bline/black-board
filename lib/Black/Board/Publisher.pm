@@ -27,8 +27,8 @@ methods to add and remove topics.
 
 =attr C<topics>
 
-Contains a L<TopicList|Black::Board::Types/TYPES/TopicList> registered to this
-publisher. A TopicList is an array reference of
+Contains a L<Black::Board::Types/TYPES/TopicList> registered to this
+publisher. A C<TopicList> is an array reference of
 L<Topic|Black::Board::Types/TYPES/Topic> objects.
 
 =method C<has_topics>
@@ -45,7 +45,7 @@ Returns a list of L<Black::Board::Topic> objects registered to this publisher.
 
 =method C<first_topic>
 
-Peform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
+Perform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
 
 =cut
 
@@ -76,7 +76,7 @@ Peform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
 =method C<remove_topic>
 
 Only argument is a L<Black::Board::Types/TYPES/TopicName>. Removes the given
-TopicName from this publishers list of topics.
+C<TopicName> from this publishers list of topics.
 
 =cut
 
@@ -92,7 +92,7 @@ TopicName from this publishers list of topics.
 
 =method C<get_topic>
 
-Given a TopicName, returns a Topic object if found, undefined otherwise.
+Given a C<TopicName>, returns a Topic object if found, undefined otherwise.
 
 =cut
 
