@@ -52,12 +52,6 @@ class Black::Board::Types {
         as ArrayRef[Subscriber];
 
 
-    class_type Topic, { class => 'Black::Board::Topic' };
-    coerce Topic,
-        from TopicName,
-            via { Black::Board->Publisher->get_topic( $_[0] ) };
-
-
     subtype TopicList,
         as ArrayRef[Topic];
     coerce TopicList,
@@ -71,20 +65,13 @@ class Black::Board::Types {
         message { "topic names must match [\\w:-]+" };
 
 
-    subtype TopicNameList,
-        as ArrayRef[TopicName];
-    coerce TopicNameList,
+    class_type Topic, { class => 'Black::Board::Topic' };
+    coerce Topic,
         from TopicName,
-            via { [ $_[0] ] };
-    coerce TopicNameList,
-        from TopicList,
-            via { [ map { $_->name } @{ $_[0] } ] };
-    coerce TopicNameList,
-        from Topic,
-            via { [  $_[0]->name  ] };
-}
+            via { Black::Board->Publisher->get_topic( $_[0] ) };
 
 1;
+
 
 __END__
 =pod
@@ -142,10 +129,6 @@ L<Black::Board::Subscriber> class type.
 
 C<ArrayRef> of L</TYPES/Subscriber> types.
 
-=head2 C<Topic>
-
-L<Black::Board::Topic> class type.
-
 =head2 C<TopicList>
 
 C<ArrayRef> of L</TYPES/Topic> types.
@@ -154,9 +137,9 @@ C<ArrayRef> of L</TYPES/Topic> types.
 
 A C<Str> which matches C<[\w:-]+>.
 
-=head2 C<TopicNameList>
+=head2 C<Topic>
 
-An C<ArrayRef> of C<TopicName> types.
+L<Black::Board::Topic> class type.
 
 =head1 AUTHOR
 

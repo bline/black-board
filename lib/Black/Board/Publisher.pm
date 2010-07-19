@@ -10,7 +10,6 @@ class Black::Board::Publisher
 
     use Scalar::Util qw( blessed reftype );
     use Black::Board::Types qw(
-        TopicNameList
         TopicList
         Topic
         TopicName
