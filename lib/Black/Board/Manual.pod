@@ -1,3 +1,6 @@
+package Black::Board::Manual;
+#ABSTRACT: Manual for L<Black::Board::Manual
+=pod
 
 =head1 DESCRIPTION
 
@@ -106,12 +109,12 @@ Currently this is a place I'm sticking my notes.
 
     $publisher->publish(
         topics  => [ 'LogDispatch' ],
-        message => $log_topic->create_message(
+        message => {
             params => {
                 message => "Something that needs logging",
                 level   => "alert"
             }
-        )
+        }
     );
 
 
