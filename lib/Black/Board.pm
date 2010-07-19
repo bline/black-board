@@ -178,14 +178,6 @@ version 0.0001
 
 =head1 DESCRIPTION
 
-=head2 WARNING WARNING WARNING
-
-This is alpha quality code. It's a running experiment at the moment. When
-things are flushed out a little I can make a few more promises on future
-changes. For now I can make no promises. Use at your own risk!
-
-=back
-
 This code is inspired by L<Bread::Board> and even a few bits were stolen from
 it.
 
@@ -226,6 +218,17 @@ argument should be the message object we are publishing. If you specify a hash
 reference here it will be coerced into a L<Black::Board::Message> object
 correct for this L<Topic|Black::Board::Topic>.
 
+=begin prelude
+
+=head1 WARNING WARNING WARNING
+
+This is alpha quality code. It's a running experiment at the moment. When
+things are flushed out a little I can make a few more promises on future
+changes. For now I can make no promises. Use at your own risk!
+
+
+=end prelude
+
 =head1 EXPORTS
 
 =over 4
@@ -265,7 +268,7 @@ more complicated than a C<param()> based message.
 
 L<Black::Board::Message>
 
-A param based Message. Subclass for a more complicated Message.
+A C<param()> based Message. Subclass for a more complicated Message.
 
 =item *
 

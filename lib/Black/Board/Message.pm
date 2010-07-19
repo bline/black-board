@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use MooseX::Declare;
 
-#ABSTRACT: param based Message for L<Bread::Board>
+#ABSTRACT: C<param> based Message for L<Bread::Board>
 
 class Black::Board::Message
     with MooseX::Param
@@ -39,7 +39,7 @@ __END__
 
 =head1 NAME
 
-Black::Board::Message - param based Message for L<Bread::Board>
+Black::Board::Message - C<param> based Message for L<Bread::Board>
 
 =head1 VERSION
 
@@ -61,7 +61,7 @@ callback. It allows you to cancel the current chain of subscriber dispatch.
 This is usually done in end-point* subscribers. This object is cloned and bubble
 set to false in the clone.
 
-* An example of an end-point is the subscriber in a LogDispatch subscription
+* An example of an end-point is the subscriber in a C<LogDispatch> subscription
 chain that dispatches to the log object. 
 
 =head2 C<clone_with_params>

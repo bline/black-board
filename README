@@ -85,11 +85,6 @@ SYNOPSIS
             };
 
 DESCRIPTION
-  WARNING WARNING WARNING
-    This is alpha quality code. It's a running experiment at the moment.
-    When things are flushed out a little I can make a few more promises on
-    future changes. For now I can make no promises. Use at your own risk!
-
     This code is inspired by Bread::Board and even a few bits were stolen
     from it.
 
@@ -145,7 +140,7 @@ SEE ALSO
 
     *   Black::Board::Message
 
-        A param based Message. Subclass for a more complicated Message.
+        A "param()" based Message. Subclass for a more complicated Message.
 
     *   Black::Board::Subscriber
 
@@ -164,11 +159,4 @@ COPYRIGHT AND LICENSE
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.
-
-POD ERRORS
-    Hey! The above document had some coding errors, which are explained
-    below:
-
-    Around line 187:
-        =back without =over
 

@@ -135,11 +135,11 @@ This is one of the pieces in the puzzle.
 =head2 C<name>
 
 Each topic must have a name and this attribute contains the name. The name is
-used to identify the Topic for message dispatch and subscrition.
+used to identify the Topic for message dispatch and subscription.
 
 =head2 C<subscribers>
 
-This attribute holdes an array of subscribers which have subscribed to this
+This attribute holds an array of subscribers which have subscribed to this
 topic.
 
 =head2 C<message_class>

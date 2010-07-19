@@ -110,7 +110,7 @@ methods to add and remove topics.
 =head2 C<topics>
 
 Contains a L<TopicList|Black::Board::Types/TYPES/TopicList> registered to this
-publisher. A TopicList is an array reference of
+publisher. A C<TopicList> is an array reference of
 L<Topic|Black::Board::Types/TYPES/Topic> objects.
 
 =head1 METHODS
@@ -129,16 +129,16 @@ Returns a list of L<Black::Board::Topic> objects registered to this publisher.
 
 =head2 C<first_topic>
 
-Peform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
+Perform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
 
 =head2 C<remove_topic>
 
 Only argument is a L<Black::Board::Types/TYPES/TopicName>. Removes the given
-TopicName from this publishers list of topics.
+C<TopicName> from this publishers list of topics.
 
 =head2 C<get_topic>
 
-Given a TopicName, returns a Topic object if found, undefined otherwise.
+Given a C<TopicName>, returns a Topic object if found, undefined otherwise.
 
 =head2 C<publish>
 
