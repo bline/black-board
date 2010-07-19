@@ -58,17 +58,7 @@ class Black::Board::Publisher
     }
 
 
-    method publish( TopicName|Topic :$topic, Message :$message ) {
-
-        # turn TopicName into Topic
-        unless (blessed $topic ) {
-            my $topic_copy = $topic;
-
-            $topic = $self->get_topic( $topic );
-
-            confess "Invalid topic $topic_copy"
-                unless defined $topic;
-        }
+    method publish( Topic :$topic, Message :$message ) {
 
         for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
 
@@ -150,9 +140,9 @@ Given a TopicName, returns a Topic object if found, undefined otherwise.
 
 =head2 C<publish>
 
-Takes a L<Black::Board::Types/TYPES/Topic> or L<Black::Board::Types/TYPES/TopicName> and a
+Takes a L<Black::Board::Types/TYPES/Topic> and a
 L<Black::Board::Types/TYPES/Message>. The message is dispatched to the
-subscribers of the topics. The final message returned by the subscriber is
+subscribers of the topic. The final message returned by the subscriber is
 returned.
 
 =head1 SEE ALSO
