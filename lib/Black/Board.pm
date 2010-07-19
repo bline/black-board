@@ -12,10 +12,21 @@ class Black::Board {
     use Moose::Autobox;
     use Moose::Exporter;
     use MooseX::ClassAttribute;
-    use MooseX::Types::Moose qw( ArrayRef CodeRef ClassName Str );
+    use MooseX::Types::Moose qw(
+        ArrayRef
+        HashRef
+        CodeRef
+        ClassName
+        Str
+    );
+    use Black::Board::Types qw(
+        Publisher
+        Message
+        Topic
+        TopicName
+    );
     use MooseX::Params::Validate;
 
-    use Black::Board::Types qw( Publisher Message Topic );
     use Black::Board::Publisher;
     use Black::Board::Subscriber;
     use Black::Board::Message;
@@ -52,24 +63,34 @@ class Black::Board {
     );
 
 
-    sub topic ($@) {
-        my ( $name, $subscriptions ) = pos_validate_list(
-            [ shift, [ @_ ] ],
-            { isa => TopicName, required => 1 }
-            { isa => ArrayRef[CodeRef] }
-        );
+    sub _get_or_create_topic {
+        my $class = shift;
+        my $name = shift;
 
         # if the topic already exists:
         #   1. If subscribers are specified, the scubscribers will be
         #   subscribed to the already existing topic.
         #   2. If no subscribers are specified this topic call is an apparent
         #   no-op but does ensure the topic is created
-        my $topic = __PACKAGE__->Publisher->get_topic( $name );
+        my $topic = $class->Publisher->get_topic( $name );
         unless ( $topic ) {
-            $topic = __PACKAGE__->TopicClass->new( name => $name );
-            __PACKAGE__->Publisher->add_topic( $topic );
+            $topic = $class->TopicClass->new( name => $name );
+            $class->Publisher->add_topic( $topic );
         }
+        return $topic;
+    }
 
+    # TODO
+    # cumlative init handlers that happen the first time something
+    # is published to the topic
+    sub topic ($@) {
+        my ( $name, $subscriptions ) = pos_validate_list(
+            [ shift, [ @_ ] ],
+            { isa => TopicName, required => 1 },
+            { isa => ArrayRef[CodeRef] }
+        );
+
+        my $topic = __PACAKGE__->_get_or_create_topic( $name );
 
         subscriber( $topic, $_ ) for $subscriptions->flatten;
 
@@ -92,6 +113,27 @@ class Black::Board {
     }
 
 
+    sub _create_message {
+        my $class = shift;
+        my $topic = shift;
+        my $opt = shift;
+
+        # removes all parameters that start with a dash
+        # these are used as top level parameters to to_Message()
+        my %p = $opt->keys->grep( sub { /^-/ } )->map( sub {
+            ( my $cp = $_ ) = s/^-//;
+            ( $cp => $opt->delete( $_ ) );
+        } );
+
+        # all other parameters are merged with params, -params taking presidence
+        $p{params} = $opt->merge( $p{params} || {} );
+
+        # the topic gets to say what type of message it wants. so you
+        # can create a custom topic with custom message types
+        return $topic->message_class->new( \%p );
+    }
+
+
     sub publish ($@) {
         my ( $topic, $maybe_message ) = pos_validated_list(
             [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
@@ -99,25 +141,16 @@ class Black::Board {
             { isa => Message|HashRef, required => 1 }
         );
 
-        my $message;
-        if ( blessed $maybe_message ) {
-            $message = $maybe_message;
-        }
-        else {
-            my $h = $maybe_message;
-            # removes all parameters that start with a dash
-            # these are used as top level parameters to to_Message()
-            my %p = $h->keys->grep( sub { /^-/ } )->map( sub {
-                ( my $cp = $_ ) = s/^-//;
-                ( $cp => $h->delete( $_ ) );
-            });
-            # all other parameters are merged with params, -params taking presidence
-            $p{params} = $h->merge( $p{params} || {} );
+        # this coercion has to be done by hand because we decide the Message
+        # class to instanciate with the Topic object
+        my $message = blessed $maybe_message
+            ? $maybe_message
 
-            $message = $topic->message_class->new( \%p );
-        }
+            # $maybe_message is a hashref with meta information about how to
+            # construct a message object
+            : __PACKAGE__->_create_message( $topic, $maybe_message );
 
-        # incase we add subtopics later
+        # we could add sub-topics later
         $message = $topic->parent->publish(
             topic   => $topic,
             message => $message
@@ -169,8 +202,11 @@ version release. Use at your own risk!
     $log_topic->add_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
+
                 if ( $logger->would_log( $_->params->{level} ) ) {
+
                     $logger->log( %{ $_->params } );
+
                     # Let the caller have a way to check if we logged
                     $_->params->{log_sent_for} = $_->params->{level};
                 }
@@ -182,11 +218,13 @@ version release. Use at your own risk!
     $log_topic->add_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
+
                 return $_->clone(
                     params => $_->params->merge( {
                         message => '[Prefix] ' . $_->params->{message}
                     } )
-                )
+                );
+
             }
         )
     );
@@ -202,8 +240,11 @@ version release. Use at your own risk!
     $log_topic->add_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
+
                 if ( $other_logger->would_log( $_->params->{level} ) ) {
+
                     $other_logger->log( %{ $_->params } );
+
                     # Let the caller have a way to check if we logged
                     $_->params->{other_log_sent_for} = $_->params->{level};
                 }
@@ -233,8 +274,11 @@ version release. Use at your own risk!
 
     # any arguments beyond the first are passed off to subscriber
     topic LogDispatch => sub {
+
         if ( $logger->would_log( $_->params->{level} ) ) {
+
             $logger->log( %{ $_->params } );
+
             # Let the caller have a way to check if we logged
             $_->params->{log_sent_for} = $_->params->{level};
         }
@@ -249,9 +293,12 @@ version release. Use at your own risk!
         ]
     );
 
-    subscriber LogDispatch, sub {
+    subscriber LogDispatch => sub {
+
         if ( $other_logger->would_log( $_->params->{level} ) ) {
+
             $other_logger->log( %{ $_->params } );
+
             # Let the caller have a way to check if we logged
             $_->params->{other_log_sent_for} = $_->params->{level};
         }
@@ -267,10 +314,13 @@ version release. Use at your own risk!
     publish LogDispatch => 
         message => "Something that needs logging",
         level   => "alert"
+
         # -params has presidence
         -params => {
+
             # level is now changed to debug
             level => "debug",
+
             more => "parameters merged with presidence"
         }
 

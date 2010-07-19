@@ -30,8 +30,11 @@ SYNOPSIS
         $log_topic->add_subscriber(
             Black::Board::Subscriber->new(
                 subscription => sub {
+
                     if ( $logger->would_log( $_->params->{level} ) ) {
+
                         $logger->log( %{ $_->params } );
+
                         # Let the caller have a way to check if we logged
                         $_->params->{log_sent_for} = $_->params->{level};
                     }
@@ -43,11 +46,13 @@ SYNOPSIS
         $log_topic->add_subscriber(
             Black::Board::Subscriber->new(
                 subscription => sub {
+
                     return $_->clone(
                         params => $_->params->merge( {
                             message => '[Prefix] ' . $_->params->{message}
                         } )
-                    )
+                    );
+
                 }
             )
         );
@@ -63,8 +68,11 @@ SYNOPSIS
         $log_topic->add_subscriber(
             Black::Board::Subscriber->new(
                 subscription => sub {
+
                     if ( $other_logger->would_log( $_->params->{level} ) ) {
+
                         $other_logger->log( %{ $_->params } );
+
                         # Let the caller have a way to check if we logged
                         $_->params->{other_log_sent_for} = $_->params->{level};
                     }
@@ -94,8 +102,11 @@ SYNOPSIS
 
         # any arguments beyond the first are passed off to subscriber
         topic LogDispatch => sub {
+
             if ( $logger->would_log( $_->params->{level} ) ) {
+
                 $logger->log( %{ $_->params } );
+
                 # Let the caller have a way to check if we logged
                 $_->params->{log_sent_for} = $_->params->{level};
             }
@@ -110,9 +121,12 @@ SYNOPSIS
             ]
         );
 
-        subscriber LogDispatch, sub {
+        subscriber LogDispatch => sub {
+
             if ( $other_logger->would_log( $_->params->{level} ) ) {
+
                 $other_logger->log( %{ $_->params } );
+
                 # Let the caller have a way to check if we logged
                 $_->params->{other_log_sent_for} = $_->params->{level};
             }
@@ -128,10 +142,13 @@ SYNOPSIS
         publish LogDispatch => 
             message => "Something that needs logging",
             level   => "alert"
+
             # -params has presidence
             -params => {
+
                 # level is now changed to debug
                 level => "debug",
+
                 more => "parameters merged with presidence"
             }
 
