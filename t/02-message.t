@@ -14,7 +14,7 @@ ok( $m2->clone->bubble, 'Message->clone does not clone bubble attribute' );
 
 $m2->params->{p1} = "p1";
 $m2->params->{p2} = "p2";
-isa_ok( my $m3 = $m2->clone_with_params( p1 => "modified" ), 'Black::Board::Message', 'Message->clone_with_params return isa Message' );
+isa_ok( my $m3 = $m2->clone_with_params( { p1 => "modified" } ), 'Black::Board::Message', 'Message->clone_with_params return isa Message' );
 is_deeply( $m3->params, { p1 => "modified", p2 => "p3" }, 'Message->clone_with_params Message return has params setup correctly' );
 is_deeply( $m1->params, { p1 => "p1", p2 => "p2" }, 'Message->clone_with_params does not modify the params of the cloned message' );
 
