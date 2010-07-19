@@ -52,8 +52,8 @@ This is one of the pieces in the puzzle.
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
+    use MooseX::Types::Moose qw( ClassName );
     use Black::Board::Types qw(
-        ClassName
         Message
         TopicName
         Subscriber
@@ -65,7 +65,7 @@ class Black::Board::Topic
 =attr C<name>
 
 Each topic must have a name and this attribute contains the name. The name is
-used to identify the Topic for message dispatch and subscrition.
+used to identify the Topic for message dispatch and subscription.
 
 =cut
 
@@ -77,7 +77,7 @@ used to identify the Topic for message dispatch and subscrition.
 
 =attr C<subscribers>
 
-This attribute holdes an array of subscribers which have subscribed to this
+This attribute holds an array of subscribers which have subscribed to this
 topic.
 
 =cut
