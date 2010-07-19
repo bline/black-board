@@ -8,8 +8,8 @@ use MooseX::Declare;
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
+    use MooseX::Types::Moose qw( ClassName );
     use Black::Board::Types qw(
-        ClassName
         Message
         TopicName
         Subscriber
