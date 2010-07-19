@@ -1,4 +1,8 @@
+use strict;
+use warnings;
 use MooseX::Declare;
+
+#ABSTRACT: Topic module for L<Black::Board>, meshes L<Messages|Black::Board::Message> with L<Subscribers|Black::Board::Subscriber>
 
 =pod
 
@@ -33,17 +37,15 @@ use MooseX::Declare;
 
 =head1 DESCRIPTION
 
-A topic has a list of subscribers. It also has a say in what kinds of messages
-will be going to said subscribers. A topic is registered to a specific
-publisher. The publisher takes care of finding which topic to publish to and
-passes off the message to the individual subscribers. Each subscriber verifies
-the message through the topic interface and then processes it. If the message is
-modified by the subscriber, a clone of the message with the modifications is
-expected to be returned.
+A topic has a list of subscribers.  It also has a say in what kinds of messages
+will be going to said subscribers.  A topic is registered to a specific
+L<Publisher|Black::Board::Publisher>. The publisher takes care of finding which
+topic to publish to and passes off the L<Message|Black::Board::Message> to the
+individual L<Topic|Black::Board::Topic> objects.  If the message is modified by
+the subscriber, a clone of the message with the modifications is expected to be
+returned.
 
-This is one pieces in the puzzle.
-
-B<<<Put reference to overview material here once it's written.>>>
+This is one of the pieces in the puzzle.
 
 =cut
 
@@ -51,14 +53,14 @@ class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
     use Black::Board::Types qw(
+        ClassName
         Message
         TopicName
         Subscriber
+        SubscriberList
         Publisher
     );
-    use Bread::Board::Types;
     use Moose::Autobox;
-    use MooseX::Types::Perl qw( PackageName );
 
 =attr C<name>
 
@@ -85,9 +87,9 @@ topic.
         traits => [ 'Array' ],
         isa => SubscriberList,
         default => sub { [] },
-        coerce,
+        coerce => 1,
         handles => {
-            has_subscribers => 'length',
+            has_subscribers => 'count',
             add_subscriber  => 'push',
             subscriber_list => 'elements'
         }
@@ -103,8 +105,8 @@ interface.
 
     has 'message_class' => (
         is => 'rw',
-        isa => PackageName,
-        default => 'Black::Boad::Message::Simple'
+        isa => ClassName,
+        default => 'Black::Board::Message'
     );
 
 =method C<wants_message>
@@ -130,17 +132,6 @@ C<message_class()>.
         return $message->isa( $self->message_class );
     }
 
-=method C<create_message>
-
-Constructs a message of class L</ATTRIBUTES/message_class> with the hash ref of
-options specified.
-
-=cut
-
-    method create_message( HashRef $options = {} ) {
-        return $self->message_class->new( $options );
-    }
-
 =method C<deliver>
 
 This method is usually called by L<Black::Board::Publisher/METHODS/publish>. It
@@ -159,7 +150,7 @@ subscription is dispatched.
 
 =cut
 
-    method deliver( Publisher :$publisher, Subscriber :$subscriber, Message :$message ) {
+    method deliver( Subscriber :$subscriber, Message :$message, Publisher :$publisher ) {
 
         # first give a chance for soft failure
         return unless $self->wants_message( $message );
@@ -167,7 +158,7 @@ subscription is dispatched.
         # the message was sent directly to these topics
         # it is a logic error at this point for messages
         # to be invalid for the topic
-        confess "Invalid message $message for $topic"
+        confess "Invalid message $message for $self"
             unless $self->valid_message( $message );
 
         return $subscriber->deliver(
@@ -177,6 +168,15 @@ subscription is dispatched.
         );
     }
 }
+
+=head1 SEE ALSO
+
+=for :list
+* L<Black::Board::Publisher> - publishes Messages to Topics
+* L<Black::Board::Subscriber> - the object a Topic delivers a message to
+* L<Black::Board> - provides sugar syntax to do all this
+
+=cut
 
 1;
 
