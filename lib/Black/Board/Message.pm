@@ -26,7 +26,7 @@ class Black::Board::Message
 
     method clone_with_params( HashRef $params ) {
         return $self->clone(
-            params => $self->params->merge( $params )
+            params => scalar( $self->params->merge( $params ) )
         );
     }
 }
