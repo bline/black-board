@@ -8,6 +8,7 @@ class Black::Board::Message
     with MooseX::Param
     with Black::Board::Trait::Traversable
 {
+    use Moose::Autobox;
     use MooseX::Clone;
 
     has 'bubble' => (
