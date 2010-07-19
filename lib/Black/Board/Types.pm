@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use MooseX::Declare;
 
 #ABSTRACT: exports types for L<Black::Board>
@@ -68,7 +70,10 @@ L<Black::Board::Message> role type.
 
 =cut
 
-    role_type Message, { role => 'Black::Board::Message' };
+    class_type Message, { class => 'Black::Board::Message' };
+    coerce Message,
+        from HashRef,
+            via { Black::Board::Message->new( %{ $_[0] } ) };
 
 =head2 C<MessageList>
 
@@ -79,16 +84,6 @@ C<ArrayRef> of L</TYPES/Message> types.
     subtype MessageList,
         as ArrayRef[Message];
 
-=head2 C<MessageSimple>
-
-L<Black::Board::Message::Simple> class type.
-
-=cut
-
-    class_type MessageSimple, { class => 'Black::Board::Message::Simple' };
-    coerce MessageSimple,
-        from HashRef,
-            via { Black::Board::Message::Simple->new( %{ $_[0] } ) };
 
 =head2 C<Subscriber>
 
