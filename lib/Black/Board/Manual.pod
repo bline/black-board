@@ -1,5 +1,6 @@
 package Black::Board::Manual;
-#ABSTRACT: Manual for L<Black::Board::Manual
+#ABSTRACT: Manual for L<Black::Board::Manual>
+
 =pod
 
 =head1 DESCRIPTION
@@ -8,7 +9,7 @@ Currently this is a place I'm sticking my notes.
 
 =head1 EXAMPLES
 
-=head2 LogDispatch
+=head2 C<LogDispatch>
 
     my $logger = new Log::Dispatch(
         outputs => [
@@ -36,7 +37,7 @@ Currently this is a place I'm sticking my notes.
         };
 
 
-=head2 LogDispatch with Bread::Board
+=head2 C<LogDispatch> with L<Bread::Board>
 
     use Bread::Board;
     use Black::Board;
@@ -70,7 +71,7 @@ Currently this is a place I'm sticking my notes.
         );
     };
 
-=head2 LogDispatch no sugar
+=head2 C<LogDispatch> no sugar
 
     my $publisher = Black::Board::Publisher->new;
 
