@@ -58,7 +58,7 @@ class Black::Board::Publisher
     }
 
 
-    method publish( Topic :$topic, Message :$message ) {
+    method publish( Topic $topic, Message $message ) {
 
         for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
 
