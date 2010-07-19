@@ -54,11 +54,11 @@ class Black::Board::Publisher
 
 
     method get_topic( TopicName $topic_name ) {
-        return $self->first_topic( sub { $_->name eq $topic } );
+        return $self->first_topic( sub { $_->name eq $topic_name } );
     }
 
 
-    method publish( Topic $topic, Message $message ) {
+    method publish( Topic :$topic, Message :$message ) {
 
         for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
 
