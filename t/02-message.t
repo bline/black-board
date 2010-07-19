@@ -4,6 +4,19 @@ use Test::More 'no_plan';
 use_ok( 'Black::Board::Message' );
 
 isa_ok( my $m1 = Black::Board::Message->new, 'Black::Board::Message', 'Message->new return isa Message' );
+can_ok( $m1, qw(
+    bubble
+    cancel_bubble
+    clone_with_params
+
+    params
+    param
+
+    parent
+    has_parent
+    detach_from_parent
+    get_root_container
+) );
 ok( $m1->bubble, 'Message object defaults bubble to true' );
 isa_ok( my $m2 = $m1->cancel_bubble(), 'Black::Board::Message', 'Message->cancel_bubble return isa Message' );
 isnt( $m2, $m1, 'Message->cancel_bubble return is a different object' );
