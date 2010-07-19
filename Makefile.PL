@@ -12,6 +12,7 @@ my %WriteMakefileArgs = (
   'ABSTRACT' => 'publish messages and subscribe to topics',
   'AUTHOR' => 'Scott Beck <sabeck@cpan.org>',
   'BUILD_REQUIRES' => {
+    'Data::Dumper' => '0',
     'English' => '0',
     'Test::More' => '0'
   },
