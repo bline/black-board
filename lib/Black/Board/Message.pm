@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use MooseX::Declare;
 
-#ABSTRACT: A simple default Message for L<Bread::Board>
+#ABSTRACT: param based Message for L<Bread::Board>
 
 class Black::Board::Message
     with MooseX::Param
@@ -39,7 +39,7 @@ __END__
 
 =head1 NAME
 
-Black::Board::Message - A simple default Message for L<Bread::Board>
+Black::Board::Message - param based Message for L<Bread::Board>
 
 =head1 VERSION
 

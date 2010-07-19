@@ -9,15 +9,14 @@ class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
     use Black::Board::Types qw(
+        ClassName
         Message
         TopicName
         Subscriber
         SubscriberList
         Publisher
     );
-    use Bread::Board::Types;
     use Moose::Autobox;
-    use MooseX::Types::Perl qw( PackageName );
 
 
     has 'name' => (
@@ -43,8 +42,8 @@ class Black::Board::Topic
 
     has 'message_class' => (
         is => 'rw',
-        isa => PackageName,
-        default => 'Black::Boad::Message'
+        isa => ClassName,
+        default => 'Black::Board::Message'
     );
 
 

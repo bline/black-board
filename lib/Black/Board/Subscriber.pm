@@ -166,6 +166,8 @@ dispatching this L<Message|Black::Board::Message>.
 
 See L</ATTRIBUTES/subscription> to see how the subscription is dispatched.
 
+=head1 SEE ALSO
+
 =over 4
 
 =item *

@@ -23,7 +23,6 @@ my %WriteMakefileArgs = (
   'LICENSE' => 'perl',
   'NAME' => 'Black::Board',
   'PREREQ_PM' => {
-    'Bread::Board::Types' => '0',
     'Moose' => '0',
     'Moose::Autobox' => '0',
     'Moose::Exporter' => '0',
@@ -33,7 +32,6 @@ my %WriteMakefileArgs = (
     'MooseX::Declare' => '0',
     'MooseX::Types' => '0',
     'MooseX::Types::Moose' => '0',
-    'MooseX::Types::Perl' => '0',
     'Scalar::Util' => '0'
   },
   'VERSION' => '0.0001',

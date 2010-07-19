@@ -15,7 +15,6 @@ meta-spec:
   version: 1.4
 name: Black-Board
 requires:
-  Bread::Board::Types: 0
   Moose: 0
   Moose::Autobox: 0
   Moose::Exporter: 0
@@ -25,7 +24,6 @@ requires:
   MooseX::Declare: 0
   MooseX::Types: 0
   MooseX::Types::Moose: 0
-  MooseX::Types::Perl: 0
   Scalar::Util: 0
 resources:
   repository: git://github.com/bline/black-board.git
