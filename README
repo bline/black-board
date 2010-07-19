@@ -180,7 +180,7 @@ FUNCTIONS
     If the topic name already exists in the singleton "CLASS
     ATTRIBUTES/Publisher":
 
-    1   If subscribers are specified, the scubscribers will be subscribed to
+    1   If subscribers are specified, the subscribers will be subscribed to
         the
 
         already existing topic.

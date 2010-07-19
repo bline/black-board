@@ -68,7 +68,7 @@ class Black::Board {
         my $name = shift;
 
         # if the topic already exists:
-        #   1. If subscribers are specified, the scubscribers will be
+        #   1. If subscribers are specified, the subscribers will be
         #   subscribed to the already existing topic.
         #   2. If no subscribers are specified this topic call is an apparent
         #   no-op but does ensure the topic is created
@@ -360,7 +360,7 @@ If the topic name already exists in the singleton L</CLASS ATTRIBUTES/Publisher>
 
 =item 1
 
-If subscribers are specified, the scubscribers will be subscribed to the
+If subscribers are specified, the subscribers will be subscribed to the
 
 already existing topic.
 
