@@ -97,9 +97,9 @@ version 0.0001
 
 =head1 WARNING WARNING WARNING
 
-This is alpha quality code. It's a running experiment at the moment. When
-things are flushed out a little I can make a few more promises on future
-changes. For now I can make no promises. Use at your own risk!
+This module is currently considered alpha quality code by it's author, the
+current maintainer. This means that anything can change in the next minor
+version release. Use at your own risk!
 
 =head1 SYNOPSIS
 
