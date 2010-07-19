@@ -171,7 +171,15 @@ CLASS ATTRIBUTES
     new object.
 
   "TopicClass"
+    Used to create a "Topic" object when one is needed. Defaults to
+    Black::Board::Topic. Can be changed to a custom topic class name for
+    extending Black::Board.
+
   "PublisherClass"
+    Used to create a "Publisher" object when one is needed. Defaults to
+    Black::Board::Publisher. Can be changed to a custom topic class name for
+    extending Black::Board.
+
 FUNCTIONS
   "topic"
     First argument is the topic name to create, any additional argument are

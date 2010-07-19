@@ -345,7 +345,15 @@ be prepared to copy the previously registered Topics into the new object.
 
 =head2 C<TopicClass>
 
+Used to create a C<Topic> object when one is needed. Defaults to
+L<Black::Board::Topic>. Can be changed to a custom topic class name for
+extending Black::Board.
+
 =head2 C<PublisherClass>
+
+Used to create a C<Publisher> object when one is needed. Defaults to
+L<Black::Board::Publisher>. Can be changed to a custom topic class name for
+extending Black::Board.
 
 =head1 FUNCTIONS
 
