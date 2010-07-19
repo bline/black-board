@@ -87,15 +87,17 @@ class Black::Board {
             level   => "alert"
         };
 
+=begin :prelude
+
+=head1 WARNING WARNING WARNING
+
+This module is currently considered alpha quality code by it's author, the
+current maintainer. This means that anything can change in the next minor
+version release. Use at your own risk!
+
+=end :prelude
+
 =head1 DESCRIPTION
-
-=head2 WARNING WARNING WARNING
-
-This is alpha quality code. It's a running experiment at the moment. When
-things are flushed out a little I can make a few more promises on future
-changes. For now I can make no promises. Use at your own risk!
-
-=back
 
 This code is inspired by L<Bread::Board> and even a few bits were stolen from
 it.
@@ -228,7 +230,7 @@ Dispatcher and owner of Topics
 A Topic object is a place to subclass for custom Topics that handle something
 more complicated than a C<param()> based message.
 * L<Black::Board::Message>
-A param based Message. Subclass for a more complicated Message.
+A C<param()> based Message. Subclass for a more complicated Message.
 * L<Black::Board::Subscriber>
 Encapsulates subscriber hooks to maintain consistent calling conventions.
 * L<Black::Board::Types>
