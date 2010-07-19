@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use MooseX::Declare;
 
 #ABSTRACT: Topic module for L<Black::Board>, meshes L<Messages|Black::Board::Message> with L<Subscribers|Black::Board::Subscriber>

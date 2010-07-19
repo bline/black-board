@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use MooseX::Declare;
 
 #ABSTRACT: Subscriber class for L<Black::Board>

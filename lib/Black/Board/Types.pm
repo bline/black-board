@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use MooseX::Declare;
 
 #ABSTRACT: exports types for L<Black::Board>

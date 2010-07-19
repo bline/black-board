@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use MooseX::Declare;
 
 # ABSTRACT: Publisher object for L<Black::Board>, dispatches to Topic subscribers
