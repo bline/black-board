@@ -27,24 +27,20 @@ Currently this is a place I'm sticking my notes.
         ]
     );
 
-    topic LogDispatch => sub {
+    topic LogDispatch => subscribe => [ sub {
         $logger->log( %{ $_->params } );
         return $_->cancel_bubble;
-    };
+    } ];
 
     subscriber LogDispatch => sub {
-        return $_->clone(
-            params => $_->params->merge( {
-                message => '[Prefix] ' . $_->params->{message}
-            } )
-        )
+        return $_->clone_with_params(
+            message => '[Prefix] ' . $_->params->{message}
+        );
     };
 
     publish LogDispatch => 
-        params => {
-            message => "Something that needs logging",
-            level => "alert"
-        };
+        message => "Something that needs logging",
+        level => "alert";
 
 =head2 C<LogDispatch> with L<Bread::Board>
 
@@ -68,11 +64,9 @@ Currently this is a place I'm sticking my notes.
         };
     };
     container Plugin => as {
-        subscriber LogDispatch => sub {
-            return $_->clone(
-                params => $_->params->merge( {
-                    message => '[Plugin] ' . $_->params->{message}
-                } )
+        subscriber LogDispatch => as {
+            return $_->clone_with_params(
+                message => '[Plugin] ' . $_->params->{message}
             )
         };
         service Plugin1 => (
