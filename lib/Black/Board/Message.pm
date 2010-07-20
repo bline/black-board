@@ -8,6 +8,7 @@ class Black::Board::Message
     with MooseX::Param
     with Black::Board::Trait::Traversable
 {
+    use Moose::Autobox;
     use MooseX::Clone;
 =attr C<bubble>
 
@@ -31,22 +32,30 @@ callback. It allows you to cancel the current chain of subscriber dispatch.
 This is usually done in end-point* subscribers. This object is cloned and bubble
 set to false in the clone.
 
+Any extra arguments passed to this method will be passed off to C<clone()>.
+
 * An example of an end-point is the subscriber in a C<LogDispatch> subscription
 chain that dispatches to the log object. 
 
 =cut
 
-    method cancel_bubble {
-        return $self->clone( bubble => 0 );
+    method cancel_bubble( @args ) {
+        return $self->clone( bubble => 0, @args );
     }
 
 =method C<clone_with_params>
 
+Returns a clone of this object setting C<<->params>>. Takes a C<HashRef> of parameters
+which will be merged with the current C<<->params>>.
+
+Any extra arguments passed to this method will be passed off to C<clone()>.
+
 =cut
 
-    method clone_with_params( HashRef $params ) {
+    method clone_with_params( HashRef $params, @args ) {
         return $self->clone(
-            params => $self->params->merge( $params )
+            params => scalar( $self->params->merge( $params ) ),
+            @args
         );
     }
 }
