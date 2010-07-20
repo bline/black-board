@@ -33,7 +33,7 @@ Black::Board::Trait::Traversable - gives you a parent and the ability to find ro
 
 =head1 VERSION
 
-version 0.0001
+version 0.0002
 
 =head1 AUTHOR
 

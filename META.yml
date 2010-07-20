@@ -32,4 +32,4 @@ requires:
   Scalar::Util: 0
 resources:
   repository: git://github.com/bline/black-board.git
-version: 0.0001
+version: 0.0002

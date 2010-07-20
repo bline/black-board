@@ -1,3 +1,13 @@
+==============================
+9999-99-99 99:99:99 +0000 HEAD
+==============================
+
+  commit 86eb34dffecca15fd096cab01862727d442c722f
+  Author: Scott Beck <scottbeck@gmail.com>
+  Date:   Tue Jul 20 02:14:57 2010 -0400
+  
+    using dotted version from git tagging 
+
 ===================================
 End of changes in the last 730 days
 ===================================
