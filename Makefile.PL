@@ -14,6 +14,7 @@ my %WriteMakefileArgs = (
   'BUILD_REQUIRES' => {
     'Data::Dumper' => '0',
     'English' => '0',
+    'Test::Exception' => '0',
     'Test::More' => '0'
   },
   'CONFIGURE_REQUIRES' => {
