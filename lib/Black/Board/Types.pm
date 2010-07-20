@@ -82,7 +82,7 @@ Black::Board::Types - exports types for L<Black::Board>
 
 =head1 VERSION
 
-version 1.0002
+version 0.0001
 
 =head1 SYNOPSIS
 

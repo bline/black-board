@@ -198,7 +198,7 @@ Black::Board - publish messages and subscribe to topics
 
 =head1 VERSION
 
-version 1.0002
+version 0.0001
 
 =head1 WARNING WARNING WARNING
 

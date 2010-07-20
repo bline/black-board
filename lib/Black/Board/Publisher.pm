@@ -100,7 +100,7 @@ Black::Board::Publisher - Publisher object for L<Black::Board>, dispatches to To
 
 =head1 VERSION
 
-version 1.0002
+version 0.0001
 
 =head1 DESCRIPTION
 

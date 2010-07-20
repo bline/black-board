@@ -45,7 +45,7 @@ Black::Board::Message - C<param> based Message for L<Bread::Board>
 
 =head1 VERSION
 
-version 1.0002
+version 0.0001
 
 =head1 ATTRIBUTES
 
