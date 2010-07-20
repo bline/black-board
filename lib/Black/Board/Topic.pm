@@ -48,7 +48,7 @@ This is one of the pieces in the puzzle.
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
-    use MooseX::Types::Moose qw( ClassName ArrayRef CodeRef );
+    use MooseX::Types::Moose qw( ArrayRef CodeRef );
     use Black::Board::Types qw(
         Message
         TopicName
@@ -129,9 +129,15 @@ interface.
 
     has 'message_class' => (
         is => 'rw',
-        isa => ClassName,
-        default => 'Black::Board::Message'
+        isa => Str,
+        lazy_build => 1,
     );
+    sub _build_message_class {
+        my $class = 'Black::Board::Message';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 =method C<wants_message>
 
