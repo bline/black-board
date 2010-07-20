@@ -27,10 +27,6 @@ class Black::Board {
     );
     use MooseX::Params::Validate;
 
-    use Black::Board::Publisher;
-    use Black::Board::Subscriber;
-    use Black::Board::Message;
-
     Moose::Exporter->setup_import_methods(
         as_is => [ qw( topic subscriber publish ) ]
     );
@@ -265,6 +261,26 @@ be prepared to copy the previously registered Topics into the new object.
         return __PACKAGE__->PublisherClass->new;
     }
 
+=clattr C<SubscriberClass>
+
+Used to create a C<Subscriber> object when one is needed. Defaults to
+L<Black::Board::Subscriber>. Can be changed to a custom topic class name for
+extending Black::Board.
+
+=cut
+
+    class_has SubscriberClass => (
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1
+    );
+    sub _build_SubscriberClass {
+        my $class = 'Black::Board::Subscriber';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
+
 =clattr C<TopicClass>
 
 Used to create a C<Topic> object when one is needed. Defaults to
@@ -274,10 +290,16 @@ extending Black::Board.
 =cut
 
     class_has TopicClass => (
-        is      => 'rw',
-        isa     => ClassName,
-        default => 'Black::Board::Topic'
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1
     );
+    sub _build_TopicClass {
+        my $class = 'Black::Board::Topic';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 =clattr C<PublisherClass>
 
@@ -288,10 +310,16 @@ extending Black::Board.
 =cut
 
     class_has PublisherClass => (
-        is      => 'rw',
-        isa     => ClassName,
-        default => 'Black::Board::Publisher'
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1,
     );
+    sub _build_PublisherClass {
+        my $class = 'Black::Board::Publisher';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 =func C<topic>
 
@@ -364,7 +392,7 @@ callback.
             { isa => CodeRef, required => 1 },
         );
 
-        $subscription = Black::Board::Subscriber->new(
+        $subscription = __PACKAGE__->SubscriberClass->new(
             subscription => $subscription
         );
         $topic->register_subscription( $subscription );
