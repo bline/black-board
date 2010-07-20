@@ -56,12 +56,9 @@ for ( 1 .. 4 ) {
         MySubscriber->new(
             subscription => $sub{$subname} = sub {
                 $called++;
-                my %p = @_;
-                for ( qw( message subscriber topic publisher ) ) {
-                    if ( exists $p{$_} and my $test_cr = $p{$_}->can( 'test' ) ) {
-                        $p{$_}->$test_cr->{$subname} ||= [];
-                        push @{ $p{$_}->$test_cr->{$subname} }, [ $_, $called ];
-                    }
+                if ( $_->can( 'test' ) ) {
+                    $_->$test_cr->{$subname} ||= [];
+                    push @{ $_->$test_cr->{$subname} }, $called;
                 }
                 return $p{message};
             }
@@ -86,10 +83,10 @@ for ( 1 .. 4 ) {
             my $icount = pop @icount;
             is( $p{topic}->has_initializers, $icount, 'Topic->has_initializers count going down ' . $icount );
 
-            for ( qw( topic publisher ) ) {
+            for ( qw( topic ) ) {
                 if ( exists $p{$_} and my $test_cr = $p{$_}->can( 'test' ) ) {
                     $p{$_}->$test_cr->{$subname} ||= [];
-                    push @{ $p{$_}->$test_cr->{$subname} }, [ $_, $icalled ];
+                    push @{ $p{$_}->$test_cr->{$subname} }, $icalled;
                 }
             }
             return $p{message};
@@ -98,16 +95,28 @@ for ( 1 .. 4 ) {
     is( $t1->has_initializers, $i + 1, "Topic->has_subscribers returns correct count with $i value" );
 }
 
-my $m = $t1->parent->publish(
-    topic   => $t1,
-    message => MyMessage->new
+my $m1 = MyMessage->new;
+my $first = 0;
+for my $subscriber ( $t1->subscribers->reverse->flatten ) {
+    my $m2 = $t1->deliver(
+        subscriber => $subscriber,
+        message    => $m1,
+        publisher  => Black::Board->Publisher
+    );
+    isa_ok( $m1, 'MyMessage', 'Topic->deliver returned' );
+    is( $m1, $m2, 'Topic->deliver without clone return same object' );
+    if ( $first++ ) {
+        my $h = 4;
+        for my $l ( 1 .. 4 ) {
+            is( $t1->test->{"isub$l"}, $h, 'initializer ' . $l . ' called ' . $h );
+            $h--;
+        }
+    }
+
 );
-isa_ok( $m, 'MyMessage', 'Publisher->publish returned' );
 my $h = 4;
 for my $l ( 1 .. 4 ) {
-    is( $t1->test->{"isub$l"}[0][1], $h, $l . ' initializer called ' . $h );
-    is( $t1->test->{"sub$l"}[0][1], $h, $l . ' topic called ' . $h );
-    is( $m->test->{"sub$l"}[0][1], $h, 'subscription ' . $l . '  called ' . $h );
+    is( $m->test->{"sub$l"}, $h, 'subscription ' . $l . '  called ' . $h );
     $h--;
 }
 
