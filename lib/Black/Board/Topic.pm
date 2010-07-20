@@ -33,9 +33,23 @@ class Black::Board::Topic
         default => sub { [] },
         coerce => 1,
         handles => {
-            has_subscribers => 'count',
-            add_subscriber  => 'push',
-            subscriber_list => 'elements'
+            has_subscribers     => 'count',
+            register_subscriber => 'push',
+            subscriber_list     => 'elements'
+        }
+    );
+
+
+    has 'initializers' => (
+        is => 'rw',
+        traits => [ 'Array' ],
+        isa => ArrayRef[CodeRef],
+        default => sub { [] },
+        handles => {
+            has_initializers      => 'count',
+            register_initializer  => 'push',
+            initializer_list      => 'elements',
+            dequeue_initializer   => 'pop',
         }
     );
 
@@ -58,6 +72,14 @@ class Black::Board::Topic
 
 
     method deliver( Subscriber :$subscriber, Message :$message, Publisher :$publisher ) {
+
+        # run onetime initialization code
+        while ( my $init = $self->dequeue_initializer ) {
+            $init->(
+                topic     => $self,
+                publisher => $publisher
+            );
+        }
 
         # first give a chance for soft failure
         return unless $self->wants_message( $message );
@@ -137,6 +159,11 @@ used to identify the Topic for message dispatch and subscription.
 
 This attribute holds an array of subscribers which have subscribed to this
 topic.
+
+=head2 C<initializers>
+
+List of registered initializers, code that is ran the first
+time a message is published to this topic.
 
 =head2 C<message_class>
 

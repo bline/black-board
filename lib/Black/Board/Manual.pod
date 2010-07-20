@@ -96,7 +96,7 @@ Currently this is a place I'm sticking my notes.
         ]
     );
 
-    $log_topic->add_subscriber(
+    $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
                 $logger->log( %{ $_->params } );
@@ -105,7 +105,7 @@ Currently this is a place I'm sticking my notes.
         )
     );
 
-    $log_topic->add_subscriber(
+    $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
                 return $_->clone(

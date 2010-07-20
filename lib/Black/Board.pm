@@ -32,7 +32,7 @@ class Black::Board {
     use Black::Board::Message;
 
     Moose::Exporter->setup_import_methods(
-        as_as      => [ qw( topic subscriber publish ) ]
+        as_is => [ qw( topic subscriber publish ) ]
     );
 
 
@@ -80,19 +80,24 @@ class Black::Board {
         return $topic;
     }
 
-    # TODO
-    # cumlative init handlers that happen the first time something
-    # is published to the topic
     sub topic ($@) {
-        my ( $name, $subscriptions ) = pos_validate_list(
-            [ shift, [ @_ ] ],
+        my ( $name, $code ) = pos_validate_list(
+            [ shift, @_ == 1 && ref( $_[0] ) eq 'HASH' ? $_[0] : { @_ } ],
             { isa => TopicName, required => 1 },
-            { isa => ArrayRef[CodeRef] }
+            { isa => HashRef[ArrayRef[CodeRef]] }
         );
 
         my $topic = __PACAKGE__->_get_or_create_topic( $name );
 
-        subscriber( $topic, $_ ) for $subscriptions->flatten;
+        # cumlative init handlers that happen the first time something
+        # is published to the topic
+        if ( exists $code->{initialize} ) {
+            $topic->register_initializer( $_ ) for $code->{initialize}->flatten;
+        }
+
+        if ( exists $code->{subscribe} ) {
+            subscriber( $topic, $_ ) for $code->{subscribe}->flatten;
+        }
 
         return $topic;
     }
@@ -108,7 +113,7 @@ class Black::Board {
         $subscription = Black::Board::Subscriber->new(
             subscription => $subscription
         );
-        $topic->add_subscription( $subscription );
+        $topic->register_subscription( $subscription );
         return $subscription;
     }
 
@@ -199,7 +204,7 @@ version release. Use at your own risk!
         ]
     );
 
-    $log_topic->add_subscriber(
+    $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
 
@@ -207,15 +212,21 @@ version release. Use at your own risk!
 
                     $logger->log( %{ $_->params } );
 
-                    # Let the caller have a way to check if we logged
-                    $_->params->{log_sent_for} = $_->params->{level};
+                    return $_->clone_with_params(
+
+                        # Let the caller have a way to check if we logged
+                        { log_sent_for => $_->params->{level} },
+
+                        # clone_with_params passes extra parameters off to clone
+                        bubble => 0
+                    );
                 }
                 return $_->cancel_bubble;
             }
         )
     );
 
-    $log_topic->add_subscriber(
+    $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
 
@@ -237,7 +248,7 @@ version release. Use at your own risk!
         ]
     );
 
-    $log_topic->add_subscriber(
+    $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
 
@@ -245,8 +256,14 @@ version release. Use at your own risk!
 
                     $other_logger->log( %{ $_->params } );
 
-                    # Let the caller have a way to check if we logged
-                    $_->params->{other_log_sent_for} = $_->params->{level};
+                    return $_->clone_with_params(
+
+                        # Let the caller have a way to check if we logged
+                        { other_log_sent_for => $_->params->{level} },
+
+                        # clone_with_params passes extra parameters off to clone
+                        bubble => 0
+                    );
                 }
                 return $_;
             }
@@ -266,43 +283,74 @@ version release. Use at your own risk!
     # -- OR -- #
 
 
-    my $logger = Log::Dispatch->(
-        outputs => [
-            [ Screen => ( 'min_level' => 'debug' ) ]
-        ]
-    );
 
     # any arguments beyond the first are passed off to subscriber
-    topic LogDispatch => sub {
+    my $logger;
+    topic LogDispatch => 
 
-        if ( $logger->would_log( $_->params->{level} ) ) {
+        # Called the next time a message is delivered
+        # only called once
+        initialize => [
+            sub {
+                require Log::Dispatch;
+                $logger = Log::Dispatch->(
+                    outputs => [
+                        [ Screen => ( 'min_level' => 'debug' ) ]
+                    ]
+                );
+            }
+        ],
+        subscribe => [
+            sub {
+                my $m = $_;
+                if ( $logger->would_log( $m->params->{level} ) ) {
 
-            $logger->log( %{ $_->params } );
+                    $logger->log( %{ $m->params } );
 
-            # Let the caller have a way to check if we logged
-            $_->params->{log_sent_for} = $_->params->{level};
-        }
-        return $_->cancel_bubble;
-    };
+                    return $m->clone_with_params(
+                        {
 
-    my $other_logger = Log::Dispatch->new(
-        outputs => [
-            [ File => (
-                'filename'  => 'intercepted-error.log'
-            ) ]
-        ]
-    );
+                            # Let the caller have a way to check if we logged
+                            log_sent_for => $m->params->{level}
+                        },
+
+                        # clone_with_params passes extra parameters off to clone
+                        bubble => 0
+                    );
+                }
+                return $m->cancel_bubble;
+            }
+        ];
+
+    my $other_logger;
+    topic LogDispatch =>
+
+        # Called the next time a message is delivered
+        # only called once
+        initialize => [
+        `   sub {
+                $other_logger = Log::Dispatch->new(
+                    outputs => [
+                        [ File => (
+                            'filename'  => 'intercepted-error.log'
+                        ) ]
+                    ]
+                );
+            }
+        ];
 
     subscriber LogDispatch => sub {
+        my $m = $_;
+        if ( $other_logger->would_log( $m->params->{level} ) ) {
 
-        if ( $other_logger->would_log( $_->params->{level} ) ) {
-
-            $other_logger->log( %{ $_->params } );
+            $other_logger->log( %{ $m->params } );
 
             # Let the caller have a way to check if we logged
-            $_->params->{other_log_sent_for} = $_->params->{level};
+            $m = $m->clone_with_params(
+                other_log_sent_for => $m->params->{level}
+            );
         }
-        return $_;
+        return $m;
     };
 
     subscriber LogDispatch => sub {
@@ -322,7 +370,7 @@ version release. Use at your own risk!
             level => "debug",
 
             more => "parameters merged with precedence"
-        }
+        };
 
 =head1 DESCRIPTION
 

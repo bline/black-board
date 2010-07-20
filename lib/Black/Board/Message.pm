@@ -19,14 +19,15 @@ class Black::Board::Message
     );
 
 
-    method cancel_bubble {
-        return $self->clone( bubble => 0 );
+    method cancel_bubble( @args? ) {
+        return $self->clone( bubble => 0, @args );
     }
 
 
-    method clone_with_params( HashRef $params ) {
+    method clone_with_params( HashRef $params, @args? ) {
         return $self->clone(
-            params => scalar( $self->params->merge( $params ) )
+            params => scalar( $self->params->merge( $params ) ),
+            @args
         );
     }
 }
@@ -62,10 +63,17 @@ callback. It allows you to cancel the current chain of subscriber dispatch.
 This is usually done in end-point* subscribers. This object is cloned and bubble
 set to false in the clone.
 
+Any extra arguments passed to this method will be passed off to C<clone()>.
+
 * An example of an end-point is the subscriber in a C<LogDispatch> subscription
 chain that dispatches to the log object. 
 
 =head2 C<clone_with_params>
+
+Returns a clone of this object setting params Takes a C<HashRef> of parameters
+which will be merged with the current C<<->params>>.
+
+Any extra arguments passed to this method will be passed off to C<clone()>.
 
 =head1 SEE ALSO
 
