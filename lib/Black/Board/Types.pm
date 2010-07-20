@@ -48,9 +48,7 @@ class Black::Board::Types {
         Topic
         TopicList
 
-
         TopicName
-        TopicNameList
     )];
 
 =head2 C<Publisher>
@@ -62,7 +60,7 @@ L<Black::Board::Publisher> class type.
     class_type Publisher, { class => 'Black::Board::Publisher' };
     coerce Publisher,
         from HashRef,
-            via { Black::Board::Publisher->new( %{ $_[0] } ) };
+            via { Black::Board->PublisherClass->new( %{ $_[0] } ) };
 
 =head2 C<Message>
 
@@ -102,6 +100,17 @@ C<ArrayRef> of L</TYPES/Subscriber> types.
     subtype SubscriberList,
         as ArrayRef[Subscriber];
 
+=head2 C<TopicName>
+
+A C<Str> which matches C<[\w:-]+>.
+
+=cut
+
+    subtype TopicName,
+        as Str,
+        where { /\A[\w:-]+\z/ },
+        message { "topic names must match [\\w:-]+" };
+
 =head2 C<Topic>
 
 L<Black::Board::Topic> class type.
@@ -109,6 +118,9 @@ L<Black::Board::Topic> class type.
 =cut
 
     class_type Topic, { class => 'Black::Board::Topic' };
+    coerce Topic,
+        from TopicName,
+            via { Black::Board->Publisher->get_topic( $_[0] ) };
 
 =head2 C<TopicList>
 
@@ -122,34 +134,7 @@ C<ArrayRef> of L</TYPES/Topic> types.
         from HashRef[Topic],
             via { [ values %{ $_[0] } ] };
 
-=head2 C<TopicName>
-
-A C<Str> which matches C<[\w:-]+>.
-
-=cut
-
-    subtype TopicName,
-        as Str,
-        where { /\A[\w:-]+\z/ },
-        message { "topic names must match [\\w:-]+" };
-
-=head2 C<TopicNameList>
-
-An C<ArrayRef> of C<TopicName> types.
-
-=cut
-
-    subtype TopicNameList,
-        as ArrayRef[TopicName];
-    coerce TopicNameList,
-        from TopicName,
-            via { [ $_[0] ] };
-    coerce TopicNameList,
-        from TopicList,
-            via { [ map { $_->name } @{ $_[0] } ] };
-    coerce TopicNameList,
-        from Topic,
-            via { [  $_[0]->name  ] };
 }
 
 1;
+
