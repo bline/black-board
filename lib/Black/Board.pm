@@ -16,7 +16,6 @@ class Black::Board {
         ArrayRef
         HashRef
         CodeRef
-        ClassName
         Str
     );
     use Black::Board::Types qw(
@@ -53,6 +52,9 @@ class Black::Board {
     $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
+
+                # $_ here is the Black::Board::Message object
+                # which you can get explicitly from @_
 
                 if ( $logger->would_log( $_->params->{level} ) ) {
 
@@ -154,11 +156,9 @@ class Black::Board {
                     $logger->log( %{ $m->params } );
 
                     return $m->clone_with_params(
-                        {
 
-                            # Let the caller have a way to check if we logged
-                            log_sent_for => $m->params->{level}
-                        },
+                        # Let the caller have a way to check if we logged
+                        { log_sent_for => $m->params->{level} },
 
                         # clone_with_params passes extra parameters off to clone
                         bubble => 0
@@ -193,7 +193,7 @@ class Black::Board {
 
             # Let the caller have a way to check if we logged
             $m = $m->clone_with_params(
-                other_log_sent_for => $m->params->{level}
+                { other_log_sent_for => $m->params->{level} }
             );
         }
         return $m;
@@ -271,7 +271,7 @@ extending Black::Board.
 
     class_has SubscriberClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1
     );
     sub _build_SubscriberClass {
@@ -291,7 +291,7 @@ extending Black::Board.
 
     class_has TopicClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1
     );
     sub _build_TopicClass {
@@ -311,7 +311,7 @@ extending Black::Board.
 
     class_has PublisherClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1,
     );
     sub _build_PublisherClass {
@@ -323,7 +323,7 @@ extending Black::Board.
 
 =func C<topic>
 
-First argument is the topic name to create, any additional argument are passed
+First argument is the topic name to create, any additional arguments are passed
 off to L</METHODS/subscriber> as new subscription callbacks.
 
 If the topic name already exists in the singleton L</CLASS ATTRIBUTES/Publisher>:
@@ -332,7 +332,7 @@ If the topic name already exists in the singleton L</CLASS ATTRIBUTES/Publisher>
 1. If subscribers are specified, the subscribers will be subscribed to the
 already existing topic.
 2. If no subscribers are specified this topic call is an apparent no-op but
-does ensure the topic is created
+does ensure the topic has been created
 
 =cut
 
@@ -340,11 +340,6 @@ does ensure the topic is created
         my $class = shift;
         my $name = shift;
 
-        # if the topic already exists:
-        #   1. If subscribers are specified, the subscribers will be
-        #   subscribed to the already existing topic.
-        #   2. If no subscribers are specified this topic call is an apparent
-        #   no-op but does ensure the topic is created
         my $topic = $class->Publisher->get_topic( $name );
         unless ( $topic ) {
             $topic = $class->TopicClass->new( name => $name );
@@ -354,13 +349,13 @@ does ensure the topic is created
     }
 
     sub topic ($@) {
-        my ( $name, $code ) = pos_validate_list(
+        my ( $name, $code ) = pos_validated_list(
             [ shift, @_ == 1 && ref( $_[0] ) eq 'HASH' ? $_[0] : { @_ } ],
             { isa => TopicName, required => 1 },
             { isa => HashRef[ArrayRef[CodeRef]] }
         );
 
-        my $topic = __PACAKGE__->_get_or_create_topic( $name );
+        my $topic = __PACKAGE__->_get_or_create_topic( $name );
 
         # cumlative init handlers that happen the first time something
         # is published to the topic
@@ -378,10 +373,11 @@ does ensure the topic is created
 =func C<subscriber>
 
 Create a new L<Black::Board::Subscriber> object and adds it to the topic
-specified.  First argument is a L<Black::Board::Topic> or the name of one
-already registered.  The second argument should be a code reference. The code
-reference is passed off to L<Black::Board::Subscriber> as the C<subscription>
-callback.
+specified.  The first argument is a L<Black::Board::Topic> object or the name
+of one which is already registered to the Singleton that lives in
+C<<Black::Board->Publisher()>>.  The second argument should be a code reference.
+The code reference is passed off to L<Black::Board::Subscriber> as the
+C<subscription> callback.
 
 =cut
 
@@ -496,7 +492,7 @@ C<-params> argument will be merged and will take precedence.
         my $opt = shift;
 
         # removes all parameters that start with a dash
-        # these are used as top level parameters to to_Message()
+        # these are used as top level parameters to Message->new()
         my %p = $opt->keys->grep( sub { /^-/ } )->map( sub {
             ( my $cp = $_ ) = s/^-//;
             ( $cp => $opt->delete( $_ ) );
