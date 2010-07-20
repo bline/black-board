@@ -21,18 +21,14 @@ use MooseX::Declare;
     };
 
     subscriber LogDispatch => sub {
-        return $_->clone(
-            params => $_->params->merge( {
-                message => '[Prefix] ' . $_->params->{message}
-            } )
+        return $_->clone_with_params(
+            message => '[Prefix] ' . $_->params->{message}
         )
     };
 
     publish LogDispatch => 
-        params => {
-            message => "Something that needs logging",
-            level => "alert"
-        };
+        message => "Something that needs logging",
+        level => "alert";
 
 
 =head1 DESCRIPTION
@@ -52,7 +48,7 @@ This is one of the pieces in the puzzle.
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
-    use MooseX::Types::Moose qw( ClassName );
+    use MooseX::Types::Moose qw( ClassName ArrayRef CodeRef );
     use Black::Board::Types qw(
         Message
         TopicName
@@ -89,9 +85,29 @@ topic.
         default => sub { [] },
         coerce => 1,
         handles => {
-            has_subscribers => 'count',
-            add_subscriber  => 'push',
-            subscriber_list => 'elements'
+            has_subscribers     => 'count',
+            register_subscriber => 'push',
+            subscriber_list     => 'elements'
+        }
+    );
+
+=attr C<initializers>
+
+List of registered initializers, code that is ran the first
+time a message is published to this topic.
+
+=cut
+
+    has 'initializers' => (
+        is => 'rw',
+        traits => [ 'Array' ],
+        isa => ArrayRef[CodeRef],
+        default => sub { [] },
+        handles => {
+            has_initializers      => 'count',
+            register_initializer  => 'push',
+            initializer_list      => 'elements',
+            dequeue_initializer   => 'pop',
         }
     );
 
@@ -151,6 +167,14 @@ subscription is dispatched.
 =cut
 
     method deliver( Subscriber :$subscriber, Message :$message, Publisher :$publisher ) {
+
+        # run onetime initialization code
+        while ( my $init = $self->dequeue_initializer ) {
+            $init->(
+                topic     => $self,
+                publisher => $publisher
+            );
+        }
 
         # first give a chance for soft failure
         return unless $self->wants_message( $message );
