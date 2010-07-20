@@ -2,11 +2,27 @@
 9999-99-99 99:99:99 +0000 HEAD
 ==============================
 
-  commit 86eb34dffecca15fd096cab01862727d442c722f
-  Author: Scott Beck <scottbeck@gmail.com>
-  Date:   Tue Jul 20 02:14:57 2010 -0400
+  commit cab4c3df6f91f681f8f50e6fd026c8b00c2a6997
+  Author: Scott Beck <sabeck@cpan.org>
+  Date:   Tue Jul 20 09:54:04 2010 -0400
   
-    using dotted version from git tagging 
+    t/02-message.t
+
+  commit 5cceea6d5a81e3add78f283e63e2acf290b8154a
+  Author: Scott Beck <sabeck@cpan.org>
+  Date:   Tue Jul 20 09:53:42 2010 -0400
+  
+    use dotted version 
+
+=================================
+2010-07-20 02:10:05 -0400 v0.0001
+=================================
+
+  commit f647c23d7cbfcd5ee305a4cad03b3be75ddb3b70
+  Author: Scott Beck <scottbeck@gmail.com>
+  Date:   Tue Jul 20 02:10:05 2010 -0400
+  
+    updated number of tests 
 
 ===================================
 End of changes in the last 730 days
