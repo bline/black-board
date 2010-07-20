@@ -70,7 +70,7 @@ chain that dispatches to the log object.
 
 =head2 C<clone_with_params>
 
-Returns a clone of this object setting params Takes a C<HashRef> of parameters
+Returns a clone of this object setting C<<->params>>. Takes a C<HashRef> of parameters
 which will be merged with the current C<<->params>>.
 
 Any extra arguments passed to this method will be passed off to C<clone()>.
