@@ -35,7 +35,7 @@ can_ok( $s1, qw(
     get_root_container
 ) );
 
-my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new, Publisher->new );
+my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new( name => 't1' ), Publisher->new );
 my %c = ( message => $m, topic => $t, publisher => $p );
 isa_ok( $s1->deliver( %c ), 'MyMessage', 'Subscriber->deliver returned Message type' );
 
