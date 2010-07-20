@@ -91,6 +91,10 @@ topic.
         }
     );
 
+    # argument prototype check type
+    before register_subscriber( Subscriber $subscriber ) {
+    }
+
 =attr C<initializers>
 
 List of registered initializers, code that is ran the first
@@ -110,6 +114,10 @@ time a message is published to this topic.
             dequeue_initializer   => 'pop',
         }
     );
+    # argument prototype check type
+    before register_initializer( CodeRef $initializer ) {
+    }
+
 
 =attr C<message_class>
 
