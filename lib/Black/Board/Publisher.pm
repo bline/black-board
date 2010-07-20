@@ -19,11 +19,11 @@ class Black::Board::Publisher
 
 
     has 'topics' => (
-        is      => 'rw',
-        isa     => TopicList,
-        traits  => [ 'Array' ],
-        default => sub { [] },
-        coerce  => 1,
+        is       => 'rw',
+        isa      => TopicList,
+        traits   => [ 'Array' ],
+        default  => sub { [] },
+        coerce   => 1,
         trigger => sub {
             my $self = shift;
             $_->parent( $self ) for @{ $self->topics };
@@ -42,11 +42,16 @@ class Black::Board::Publisher
         }
     }
 
+    after add_topic( Topic $topic ) {
+        $topic->parent( $self );
+    }
+
 
     method remove_topic( TopicName $topic_name ) {
         my $topics = $self->topics;
         for ( my $i = 0; $i < $topics->count; ++$i ) {
             if ( $topics->get( $i )->name eq $topic_name ) {
+                $topics->get( $i )->detach_from_parent;
                 $topics->delete( $i );
                 last;
             }
