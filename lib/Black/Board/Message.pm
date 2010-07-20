@@ -19,12 +19,12 @@ class Black::Board::Message
     );
 
 
-    method cancel_bubble( @args? ) {
+    method cancel_bubble( @args ) {
         return $self->clone( bubble => 0, @args );
     }
 
 
-    method clone_with_params( HashRef $params, @args? ) {
+    method clone_with_params( HashRef $params, @args ) {
         return $self->clone(
             params => scalar( $self->params->merge( $params ) ),
             @args
