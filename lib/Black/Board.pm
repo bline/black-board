@@ -27,10 +27,6 @@ class Black::Board {
     );
     use MooseX::Params::Validate;
 
-    use Black::Board::Publisher;
-    use Black::Board::Subscriber;
-    use Black::Board::Message;
-
     Moose::Exporter->setup_import_methods(
         as_is => [ qw( topic subscriber publish ) ]
     );
@@ -49,18 +45,43 @@ class Black::Board {
     }
 
 
-    class_has TopicClass => (
-        is      => 'rw',
-        isa     => ClassName,
-        default => 'Black::Board::Topic'
+    class_has SubscriberClass => (
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1
     );
+    sub _build_SubscriberClass {
+        my $class = 'Black::Board::Subscriber';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
+
+
+    class_has TopicClass => (
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1
+    );
+    sub _build_TopicClass {
+        my $class = 'Black::Board::Topic';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 
     class_has PublisherClass => (
-        is      => 'rw',
-        isa     => ClassName,
-        default => 'Black::Board::Publisher'
+        is         => 'rw',
+        isa        => ClassName,
+        lazy_build => 1,
     );
+    sub _build_PublisherClass {
+        my $class = 'Black::Board::Publisher';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 
     sub _get_or_create_topic {
@@ -110,7 +131,7 @@ class Black::Board {
             { isa => CodeRef, required => 1 },
         );
 
-        $subscription = Black::Board::Subscriber->new(
+        $subscription = __PACKAGE__->SubscriberClass->new(
             subscription => $subscription
         );
         $topic->register_subscription( $subscription );
@@ -390,6 +411,12 @@ to be sent on multiple dispatch chains.
 This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
 a different Publisher object but you should do this before you start declaring Topics or
 be prepared to copy the previously registered Topics into the new object.
+
+=head2 C<SubscriberClass>
+
+Used to create a C<Subscriber> object when one is needed. Defaults to
+L<Black::Board::Subscriber>. Can be changed to a custom topic class name for
+extending Black::Board.
 
 =head2 C<TopicClass>
 

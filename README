@@ -213,6 +213,11 @@ CLASS ATTRIBUTES
     Topics or be prepared to copy the previously registered Topics into the
     new object.
 
+  "SubscriberClass"
+    Used to create a "Subscriber" object when one is needed. Defaults to
+    Black::Board::Subscriber. Can be changed to a custom topic class name
+    for extending Black::Board.
+
   "TopicClass"
     Used to create a "Topic" object when one is needed. Defaults to
     Black::Board::Topic. Can be changed to a custom topic class name for

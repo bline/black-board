@@ -19,6 +19,7 @@ lib/Black/Board/Types.pm
 lib/Black/Board/black-board.dia
 t/01-use.t
 t/02-message.t
+t/03-subscriber.t
 t/author-critic.t
 t/release-kwalitee.t
 t/release-no-tabs.t
