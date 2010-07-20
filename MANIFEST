@@ -16,7 +16,6 @@ lib/Black/Board/Subscriber.pm
 lib/Black/Board/Topic.pm
 lib/Black/Board/Trait/Traversable.pm
 lib/Black/Board/Types.pm
-lib/Black/Board/black-board.dia
 t/01-use.t
 t/02-message.t
 t/03-subscriber.t
