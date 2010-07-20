@@ -3,7 +3,13 @@ use strict;
 use warnings;
 use Test::More 'no_plan';
 
-use_ok( 'Black::Board::Subscriber' );
+BEGIN {
+    use_ok( "Black::Board" );
+    use_ok( 'Black::Board::Subscriber' );
+    use_ok( "Black::Board::Message" );
+    use_ok( "Black::Board::Topic" );
+    use_ok( "Black::Board::Publisher" );
+}
 
 my $sub = sub {
     my %p = @_;
@@ -39,9 +45,6 @@ for ( keys %c ) {
 
 
 BEGIN {
-    use_ok( "Black::Board::Message" );
-    use_ok( "Black::Board::Topic" );
-    use_ok( "Black::Board::Publisher" );
 
     package MyMessage;
     use Moose;
