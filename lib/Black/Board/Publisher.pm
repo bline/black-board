@@ -61,7 +61,7 @@ class Black::Board::Publisher
 
     method publish( Topic :$topic, Message :$message ) {
 
-        for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
+        for my $subscriber ( $topic->subscribers->reverse->flatten ) {
 
             # if the subscriber wishes to change the message, they must
             # clone it. the return copy is what bubbles up. deliver() must

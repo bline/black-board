@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More 'no_plan';
+use Test::More tests => 38;
 use Test::Exception;
 
 BEGIN {
@@ -45,19 +45,23 @@ is( $t1->name, 't1', 'Topic->name set in constructor' );
 dies_ok { $t1->name( 't2' ) } 'Topic->name is readonly';
 is( $t1->name, 't1', 'Topic->name readonly exception did not change Topic->name' );
 
-dies_ok { $t1->register_subscription( '' ) } 'Topic->register_subscription dies on non-CodeRef';
+dies_ok { $t1->register_subscriber( '' ) } 'Topic->register_subscriber dies on non-Subscriber type';
+dies_ok { $t1->register_initializer( '' ) } 'Topic->register_initializer dies on non-CodeRef type';
 
 my %sub;
 my $called = 0;
-for ( 1, 2 ) {
+for ( 1 .. 4 ) {
     my $subname = "sub$_";
-    $t1->register_subscription(
+    $t1->register_subscriber(
         MySubscriber->new(
             subscription => $sub{$subname} = sub {
                 $called++;
                 my %p = @_;
                 for ( qw( message subscriber topic publisher ) ) {
-                    $p{$_}->test( "$_|$subnum|$called" ) if exists $p{$_} and $p{$_}->can( 'test' );
+                    if ( exists $p{$_} and my $test_cr = $p{$_}->can( 'test' ) ) {
+                        $p{$_}->$test_cr->{$subname} ||= [];
+                        push @{ $p{$_}->$test_cr->{$subname} }, [ $_, $called ];
+                    }
                 }
                 return $p{message};
             }
@@ -70,7 +74,7 @@ for ( 1, 2 ) {
 my %isub;
 my $icalled = 0;
 my @icount;
-for ( 1, 2 ) {
+for ( 1 .. 4 ) {
     my $subname = "isub$_";
     my $i = keys %isub;
     push @icount, $i;
@@ -80,14 +84,12 @@ for ( 1, 2 ) {
             my %p = @_;
 
             my $icount = pop @icount;
-            is( $p{topic}->has_initializers, $icount, 'Topic->has_initializers count going down' );
+            is( $p{topic}->has_initializers, $icount, 'Topic->has_initializers count going down ' . $icount );
 
             for ( qw( topic publisher ) ) {
                 if ( exists $p{$_} and my $test_cr = $p{$_}->can( 'test' ) ) {
-                    $test = $p{$_}->$test_cr->{$subname};
-                    $test .= "\t" if $test;
-                    $test //= '';
-                    $p{$_}->$test_cr->{$subname} = ( $test .  "$_|$called" );
+                    $p{$_}->$test_cr->{$subname} ||= [];
+                    push @{ $p{$_}->$test_cr->{$subname} }, [ $_, $icalled ];
                 }
             }
             return $p{message};
@@ -100,21 +102,34 @@ my $m = $t1->parent->publish(
     topic   => $t1,
     message => MyMessage->new
 );
-isa_ok( $m, 'MyMessage', 'Publisher->publish returns the message passed in' );
-use Data::Dumper;
-warn Dumper( $t1->test );
+isa_ok( $m, 'MyMessage', 'Publisher->publish returned' );
+my $h = 4;
+for my $l ( 1 .. 4 ) {
+    is( $t1->test->{"isub$l"}[0][1], $h, $l . ' initializer called ' . $h );
+    is( $t1->test->{"sub$l"}[0][1], $h, $l . ' topic called ' . $h );
+    is( $m->test->{"sub$l"}[0][1], $h, 'subscription ' . $l . '  called ' . $h );
+    $h--;
+}
 
 BEGIN {
+    package MyTestRole;
+    use Moose::Role;
+    has 'test' => ( is => 'rw', isa => 'HashRef', default => sub { {} } );
+
+    package MySubscriber;
+    use Moose;
+    extends 'Black::Board::Subscriber';
+    with 'MyTestRole';
 
     package MyMessage;
     use Moose;
     extends 'Black::Board::Message';
-    has 'test' => ( is => 'rw', isa => 'HashRef' );
+    with 'MyTestRole';
 
     package MyTopic;
     use Moose;
     extends 'Black::Board::Topic';
-    has 'test' => ( is => 'rw', isa => 'HashRef' );
+    with 'MyTestRole';
 
     has '+message_class' => (
         default => 'MyMessage'
@@ -123,7 +138,7 @@ BEGIN {
     package MyPublisher;
     use Moose;
     extends 'Black::Board::Publisher';
-    has 'test' => ( is => 'rw', isa => 'HashRef' );
+    with 'MyTestRole';
 
     Black::Board->PublisherClass( 'MyPublisher' );
     Black::Board->TopicClass( 'MyTopic' );

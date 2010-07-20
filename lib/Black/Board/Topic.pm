@@ -39,6 +39,10 @@ class Black::Board::Topic
         }
     );
 
+    # argument prototype check type
+    before register_subscriber( Subscriber $subscriber ) {
+    }
+
 
     has 'initializers' => (
         is => 'rw',
@@ -52,6 +56,10 @@ class Black::Board::Topic
             dequeue_initializer   => 'pop',
         }
     );
+    # argument prototype check type
+    before register_initializer( CodeRef $initializer ) {
+    }
+
 
 
     has 'message_class' => (
