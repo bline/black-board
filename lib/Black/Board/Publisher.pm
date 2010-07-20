@@ -49,11 +49,11 @@ Perform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
 =cut
 
     has 'topics' => (
-        is      => 'rw',
-        isa     => TopicList,
-        traits  => [ 'Array' ],
-        default => sub { [] },
-        coerce  => 1,
+        is       => 'rw',
+        isa      => TopicList,
+        traits   => [ 'Array' ],
+        default  => sub { [] },
+        coerce   => 1,
         trigger => sub {
             my $self = shift;
             $_->parent( $self ) for @{ $self->topics };
@@ -72,6 +72,10 @@ Perform a L<first()|List::Util> operation on L<topics|/ATTRIBUTES/topics>.
         }
     }
 
+    after add_topic( Topic $topic ) {
+        $topic->parent( $self );
+    }
+
 =method C<remove_topic>
 
 Only argument is a L<Black::Board::Types/TYPES/TopicName>. Removes the given
@@ -83,6 +87,7 @@ C<TopicName> from this publishers list of topics.
         my $topics = $self->topics;
         for ( my $i = 0; $i < $topics->count; ++$i ) {
             if ( $topics->get( $i )->name eq $topic_name ) {
+                $topics->get( $i )->detach_from_parent;
                 $topics->delete( $i );
                 last;
             }
@@ -110,7 +115,7 @@ returned.
 
     method publish( Topic :$topic, Message :$message ) {
 
-        for my $subscriber ( $topic->subscriber_list->reverse->flatten ) {
+        for my $subscriber ( $topic->subscribers->reverse->flatten ) {
 
             # if the subscriber wishes to change the message, they must
             # clone it. the return copy is what bubbles up. deliver() must
