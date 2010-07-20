@@ -377,7 +377,7 @@ does ensure the topic is created
 
 =func C<subscriber>
 
-Create a new L<Black::Board::Subscription> object and adds it to the topic
+Create a new L<Black::Board::Subscriber> object and adds it to the topic
 specified.  First argument is a L<Black::Board::Topic> or the name of one
 already registered.  The second argument should be a code reference. The code
 reference is passed off to L<Black::Board::Subscriber> as the C<subscription>
