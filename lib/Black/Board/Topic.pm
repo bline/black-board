@@ -8,7 +8,7 @@ use MooseX::Declare;
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
-    use MooseX::Types::Moose qw( ClassName );
+    use MooseX::Types::Moose qw( ClassName ArrayRef CodeRef );
     use Black::Board::Types qw(
         Message
         TopicName
