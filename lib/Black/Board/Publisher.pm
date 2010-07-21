@@ -70,15 +70,17 @@ class Black::Board::Publisher
 
         for my $subscriber ( $topic->subscriber_list ) {
 
+            local $message->{publisher} = $self; # optimization
+
             # the return copy is what bubbles up. deliver() must
             # return the message or something like it.
             $message = $topic->deliver(
-                $subscriber, $message, $self
+                $subscriber, $message
             );
 
             # this boolean is set to false when cancel_bubble() is called.
             # cancel_bubble() is used by final-destination subscribers
-            last unless $message->bubble;
+            last unless $message->{bubble}; # optimization
         }
 
         # the final message returned is expected to have information about what

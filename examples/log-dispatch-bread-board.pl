@@ -25,7 +25,7 @@ sub run {
     publish $log => message => "-middle of message-";
     publish $log => message => "<- end of message\n";
 
-    for ( 1 .. 1000 ) {
+    for ( 1 .. 2000 ) {
         publish $fmt_log => message => "Speed logging $_";
     }
 }
@@ -95,7 +95,7 @@ my $container = container 'MyApp' => as {
             };
             subscriber $fmt_log => sub {
                 return $_->merge_params( {
-                    message => '[' . $_->caller_meta->name . '] ' . $_->params->{message}
+                    message => '[' . $_->with_meta->name . '] ' . $_->params->{message}
                 } );
             };
             subscriber $fmt_log => sub {

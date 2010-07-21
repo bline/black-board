@@ -133,58 +133,69 @@ class Black::Board {
     }
 
 
-    sub _create_message {
-        my ( $class, $topic, $opt ) = @_;
-
-        # removes all parameters that start with a dash
-        # these are used as top level parameters to Message->new()
-        my %p = map {
-            ( my $cp = $_ ) =~ s/^-//;
-            ( $cp => delete $opt->{ $_ } );
-        } grep /^-/, keys %$opt;
-
-        # all other parameters are merged with params, -params taking precedence
-        $p{params} = { %$opt, %{ $p{params} || {} } };
-
-        # the topic gets to say what type of message it wants. so you
-        # can create a custom topic with custom message types
-        return $topic->message_class->new( \%p );
-    }
-
+#    sub _create_message {
+#        my ( $class, $topic, $opt ) = @_;
+#
+#        # removes all parameters that start with a dash
+#        # these are used as top level parameters to Message->new()
+#        my %p = map {
+#            ( my $cp = $_ ) =~ s/^-//;
+#            ( $cp => delete $opt->{ $_ } );
+#        } grep /^-/, keys %$opt;
+#
+#        # all other parameters are merged with params, -params taking precedence
+#        $p{params} = { %$opt, %{ $p{params} || {} } };
+#
+#        # the topic gets to say what type of message it wants. so you
+#        # can create a custom topic with custom message types
+#        return $topic->{message_class}->new( \%p ); # optimized
+#    }
 
     sub publish ($@) {
         my $meta = shift;
 
         # Optimization
         my ( $topic, $maybe_message ) = ( shift, ( @_ == 1 ? $_[0] : { @_ } ) );
-
         my $publisher;
         unless ( blessed $topic ) {
             $publisher = __PACKAGE__->Publisher;
-            $topic = $publisher->get_topic( $topic );
+            $topic = $publisher->get_topic( my $topic_copy = $topic );
+
+            # can go no further without a topic to publish to
+            confess "can not find topic for [" . ( $topic_copy // 'Undef' ) . "]"
+                unless defined $topic;
         }
 
-        # the above instead of:
-#        my ( $topic, $maybe_message ) = pos_validated_list(
-#            [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
-#            { isa => Topic, coerce => 1, required => 1 },
-#            { isa => Message|HashRef, required => 1 }
-#        );
 
         # this coercion has to be done by hand because we decide the Message
         # class to instanciate with the Topic object
-        my $message = blessed $maybe_message
-            ? $maybe_message
+        my $message;
+        if ( blessed $maybe_message ) {
+            $message = $maybe_message;
+        }
+        else {
+            my $opt = $maybe_message;
 
-            # $maybe_message is a hashref with meta information about how to
-            # construct a message object
-            #  Can override -with_meta
-            : __PACKAGE__->_create_message( $topic, { -with_meta => $meta, %$maybe_message  } );
+            # removes all parameters that start with a dash
+            # these are used as top level parameters to Message->new()
+            my %p = map {
+                ( my $cp = $_ ) =~ s/^-//;
+                ( $cp => delete $opt->{ $_ } );
+            } grep /^-/, keys %$opt;
+
+            # all other parameters are merged with params, -params taking precedence
+            $p{params} = { %$opt, %{ $p{params} || {} } };
+
+            # the topic gets to say what type of message it wants. so you
+            # can create a custom topic with custom message types
+            $message = $topic->message_class->new( \%p );
+            $message->{with_meta} = $meta; # optimized
+        }
 
         # we could add sub-topics later
-        $message = do { $publisher || $topic->parent }->publish( $topic, $message );
-        return $message;
+        return do { $publisher // $topic->parent }->publish( $topic, $message );
     }
+
 }
 
 

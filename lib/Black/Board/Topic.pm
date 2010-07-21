@@ -81,33 +81,22 @@ class Black::Board::Topic
     }
 
 
-    imethod valid_message( $message ) {
-        return 1; # $message->isa( $self->message_class );
-    }
-
-
-    imethod deliver( $subscriber, $message, $publisher ) {
+    imethod deliver( $subscriber, $message ) {
 
         # run onetime initialization code
-        while ( @{ $self->initializers } ) {
+        while ( @{ $self->{initializers} } ) { # optimized
             $self->dequeue_initializer->(
                 topic     => $self,
-                publisher => $publisher,
+                publisher => $self->parent,
             );
         }
 
-        # first give a chance for soft failure
+        # soft failure
         return $message unless $self->wants_message( $message );
 
-        # the message was sent directly to these topics
-        # it is a logic error at this point for messages
-        # to be invalid for the topic
-        confess "Invalid message $message for $self"
-            unless $self->valid_message( $message );
+        local $message->{topic} = $self; # optimized
 
-        return $subscriber->deliver(
-            $message, $self, $publisher
-        );
+        return $subscriber->deliver( $message );
     }
 }
 
@@ -177,6 +166,7 @@ topic.
 
 List of registered initializers, code that is ran the first
 time a message is published to this topic.
+Subclasses can not override this due to optimizations.
 
 =head2 C<message_class>
 
@@ -188,29 +178,27 @@ interface.
 
 =head2 C<wants_message>
 
-A softer version of L</METHODS/valid_message>. Returning false from here will
-cause L</METHODS/deliver> to skip the current topic. The default returns true.
+This method is usually called by L</METHODS/deliver>. It takes one parameter,
+the current L<Black::Board::Message> object. Returning false from this method
+will cause L</METHODS/deliver> to skip the current Message. The default
+implementation returns true.
 
-=head2 C<valid_message>
-
-Returning false will cause L</METHODS/deliver> to throw an exception. The
-default implementation of this just returns true.
+This is a place for subclasses to override. The default method only returns
+true.  You can override this in your cusom topic to do some complex checking.
+You can skip the current message by returning false or you can throw an
+exception if things are really scarry!
 
 =head2 C<deliver>
 
 This method is usually called by L<Black::Board::Publisher/METHODS/publish>. It
-takes two positional/named parameters. The first is C<publisher>. This should
-be the publisher object that is dispatching this message. The second argument is
-the L<Message|Black::Board::Message> object which is being delivered.
+takes two positional arguments. The first is the L<Black::Board::Subscriber>
+object to deliver to.  The second argument is the L<Black::Board::Message>
+object which is being delivered.
 
-This method skips messages which are not wanted by the Topic.
-    return unless $self->wants_message( $message );
-This method will throw an exception if a call to
-    $self->valid_message( $message );
-fails.
-
-See L<Black::Board::Subscriber/ATTRIBUTES/subscription> to see how the
-subscription is dispatched.
+This method returns the message passed in if a call to C<<Topic->wants_message(
+Message )>> returns false. Otherwise this method returns it's call to C<<
+Subscriber->deliver( Message ) >>. The C<Message> object has it's current topic
+set to this C<Topic> instance.
 
 =head1 SEE ALSO
 

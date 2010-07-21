@@ -34,7 +34,7 @@ subscriber FmtLog => sub {
 
 subscriber FmtLog => sub {
     return $_->merge_params( {
-        message => '[' . $_->caller_meta->name . '] ' . $_->params->{message}
+        message => '[' . $_->with_meta->name . '] ' . $_->params->{message}
     } );
 };
 
@@ -56,7 +56,7 @@ publish Log => message => "beginning of unformatted message ->";
 publish Log => message => "-middle of message-";
 publish Log => message => "<- end of message\n";
 
-for ( 1 .. 1000 ) {
+for ( 1 .. 2000 ) {
     publish FmtLog => message => "Speed logging $_";
 }
 

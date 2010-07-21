@@ -11,6 +11,24 @@ class Black::Board::Message
     use Method::Signatures::Simple name => 'imethod';
 
 
+    has 'publisher' => (
+        is  => 'rw',
+        isa => 'Black::Board::Publisher'
+    );
+
+
+    has 'topic' => (
+        is  => 'rw',
+        isa => 'Black::Board::Topic'
+    );
+
+
+    has 'subscriber' => (
+        is => 'rw',
+        isa => 'Black::Board::Subscriber'
+    );
+
+
     has 'bubble' => (
         is => 'rw',
         isa => 'Bool',
@@ -19,13 +37,13 @@ class Black::Board::Message
 
 
     has 'with_meta' => (
-        is  => 'ro',
+        is  => 'rw',
         isa => 'Object',
     );
 
 
     imethod cancel_bubble() {
-        $self->bubble( 0 );
+        $self->{bubble} = 0;
         return $self;
     }
 
@@ -54,14 +72,34 @@ version 0.0001
 
 =head1 ATTRIBUTES
 
+=head2 C<publisher>
+
+This is the L<Black::Board::Publisher> currently dispatching this message.
+Subclasses can not override this because of optimizations.
+
+=head2 C<topic>
+
+This is the L<Black::Board::Topic> currently dispatching this message.
+Subclasses can not override this because of optimizations.
+
+=head2 C<subscriber>
+
+This is the L<Black::Board::Subscriber> this message is currently being
+dispatched to.
+Subclasses can not override this because of optimizations.
+
 =head2 C<bubble>
 
 L<Black::Board::Subscriber> uses this flag to know if it should continue
 dispatching the current subscription message.
+Subclasses can not override this because of optimizations.
 
 =head2 C<with_meta>
 
-The meta object from the class the created this C<Message> object. Required.
+The meta object to make available to subscribers. If you used
+L<Black::Board/FUNCTIONS/publish> to send this message, this is set
+automatically to the calling packages meta object.
+Subclasses can not override this because of optimizations.
 
 =head1 METHODS
 
@@ -69,8 +107,8 @@ The meta object from the class the created this C<Message> object. Required.
 
 This makes sense from the context of a L<Black::Board::Subscriber> subscription
 callback. It allows you to cancel the current chain of subscriber dispatch.
-This is usually done in end-point* subscribers. This object is returned with bubble
-set to false.
+This is usually done in end-point* subscribers. This object is returned with
+bubble set to false.
 
 * An example of an end-point is the subscriber in a C<LogDispatch> subscription
 chain that dispatches to the log object. 
@@ -78,9 +116,7 @@ chain that dispatches to the log object.
 =head2 C<merge_params>
 
 Merges C<HashRef> passed in with current C<<Message->params>>, the C<HashRef>
-taking precedence.
-
-Returns self.
+taking precedence.  Returns self.
 
 =head1 SEE ALSO
 
