@@ -1,15 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More 'no_plan';
 
 use_ok( 'Black::Board::Message' );
 
-isa_ok( my $m1 = Black::Board::Message->new, 'Black::Board::Message', 'Message->new return isa Message' );
+isa_ok( my $m1 = Black::Board::Message->new( with_meta => Foo->meta ), 'Black::Board::Message', 'Message->new return isa Message' );
+is( $m1->with_meta, Foo->meta, 'Message->with_meta initialized correctly' );
 can_ok( $m1, qw(
     bubble
     cancel_bubble
-    clone_with_params
+    merge_params
 
     params
     param
@@ -20,22 +21,14 @@ can_ok( $m1, qw(
     get_root_container
 ) );
 ok( $m1->bubble, 'Message object defaults bubble to true' );
-isa_ok( my $m2 = $m1->cancel_bubble(), 'Black::Board::Message', 'Message->cancel_bubble return isa Message' );
-isnt( $m2, $m1, 'Message->cancel_bubble return is a different object' );
-ok( !$m2->bubble, 'Message->cancel_bubble changes sets bubble attribute to false' );
-ok( $m1->bubble, 'Message->cancel_bubble does not change original objects bubble attribute' );
+isa_ok( $m1->cancel_bubble(), 'Black::Board::Message', 'Message->cancel_bubble return isa Message' );
+ok( !$m1->bubble, 'Message->cancel_bubble sets bubble attribute to false' );
 
-ok( $m2->clone->bubble, 'Message->clone does not clone bubble attribute' );
+$m1->params->{p1} = "p1";
+$m1->params->{p2} = "p2";
+isa_ok( $m1->merge_params( { p1 => "modified" } ), 'Black::Board::Message', 'Message->merge_params return' );
+is_deeply( $m1->params, { p1 => "modified", p2 => "p2" }, 'Message->merge_params merged' );
 
-use Data::Dumper;
-$m2->params->{p1} = "p1";
-$m2->params->{p2} = "p2";
-isa_ok( my $m3 = $m2->clone_with_params( { p1 => "modified" } ), 'Black::Board::Message', 'Message->clone_with_params return isa Message' );
-is_deeply( $m3->params, { p1 => "modified", p2 => "p2" }, 'Message->clone_with_params Message return has params setup correctly' );
-is_deeply( $m2->params, { p1 => "p1", p2 => "p2" }, 'Message->clone_with_params does not modify the params of the cloned message' );
-
-$m3->params->{p2} = Foo->new( a => 1 );
-is( $m3->params->{p2}, $m3->clone->params->{p2}, 'clone does not deeply clone params' );
 
 BEGIN {
 package Foo;

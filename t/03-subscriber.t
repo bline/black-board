@@ -4,23 +4,23 @@ use warnings;
 use Test::More tests => 11;
 
 BEGIN {
-    use_ok( "Black::Board" );
     use_ok( 'Black::Board::Subscriber' );
     use_ok( "Black::Board::Message" );
     use_ok( "Black::Board::Topic" );
     use_ok( "Black::Board::Publisher" );
+    use_ok( "Black::Board" );
 }
 
 my $sub = sub {
-    my %p = @_;
-    for ( qw( message subscriber topic publisher ) ) {
-        $p{$_}->test( $_ ) if exists $p{$_} and $p{$_}->can( 'test' );
+    $_->test( 'message' );
+    for my $m ( qw( topic publisher ) ) {
+        $_->$m()->test( $m );
     }
-    return $p{message};
+    return $_;
 };
 
 isa_ok( my $s1 = Black::Board::Subscriber->new( subscription => $sub ),
-    'Black::Board::Subscriber', 'Subscriber->new return isa Subscriber' );
+    'Black::Board::Subscriber', 'Subscriber->new return' );
 
 can_ok( $s1, qw(
     subscription
@@ -36,11 +36,14 @@ can_ok( $s1, qw(
 ) );
 
 my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new( name => 't1' ), MyPublisher->new );
-my %c = ( message => $m, topic => $t, publisher => $p );
-isa_ok( $s1->deliver( %c ), 'MyMessage', 'Subscriber->deliver returned Message type' );
 
+$t->register_subscriber( $s1 );
+
+isa_ok( $p->publish( $t, $m ), 'MyMessage', 'Publisher->publisher returned Message type' );
+
+my %c = ( message => $m, topic => $t, publisher => $p );
 for ( keys %c ) {
-    is( $c{$_}->test, $_, 'subscription callback called with ' . $_ )
+    is( $c{$_}->test, $_, 'subscription callback called with ' . $_ );
 }
 
 
@@ -56,9 +59,9 @@ BEGIN {
     extends 'Black::Board::Topic';
     has 'test' => ( is => 'rw' );
 
-    has '+message_class' => (
-        default => 'MyMessage'
-    );
+    around '_build_message_class' => sub {
+        return 'MyMessage';
+    };
 
     package MyPublisher;
     use Moose;
