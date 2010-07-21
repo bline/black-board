@@ -14,7 +14,7 @@ BEGIN {
 my $sub = sub {
     $_->test( 'message' ) if $_->can( 'test' );
     for my $m ( qw( subscriber topic publisher ) ) {
-        $_->$m()->test( $m ) if $_->$m->can( 'test' );
+        $_->$m()->test( $m ) if $_->$m()->can( 'test' );
     }
     return $_;
 };

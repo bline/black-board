@@ -32,7 +32,6 @@ can_ok( $t1, qw(
 
     message_class
     wants_message
-    valid_message
     deliver
 
     parent
