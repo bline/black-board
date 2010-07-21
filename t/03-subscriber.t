@@ -12,9 +12,9 @@ BEGIN {
 }
 
 my $sub = sub {
-    my %p = @_;
-    for ( qw( message subscriber topic publisher ) ) {
-        $p{$_}->test( $_ ) if exists $p{$_} and $p{$_}->can( 'test' );
+    $_->test( 'message' ) if $_->can( 'test' );
+    for my $m ( qw( subscriber topic publisher ) ) {
+        $_->$m()->test( $m ) if $_->$m->can( 'test' );
     }
     return $p{message};
 };
