@@ -1,5 +1,5 @@
 
-0.0001    2010-07-21 19:08:46 EST5EDT
+0.0001    2010-07-21 19:09:12 EST5EDT
     * Black::Board is now a MooseX::Singleton.
     * Black::Board::Message object now contains the current publisher, topic,
       and subscriber.
