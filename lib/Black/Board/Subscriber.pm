@@ -8,6 +8,7 @@ class Black::Board::Subscriber
     with Black::Board::Trait::Traversable
     with MooseX::Param
 {
+    use Method::Signatures::Simple name => 'imethod';
     use Black::Board::Types qw( Publisher Topic Message );
 
 
@@ -94,29 +95,16 @@ a L<Message|Black::Board::Message> to a C<CodeRef>.
 =attr C<subscription>
 
 C<subscription> is an attribute which contains the C<CodeRef> called to deliver a
-message. This C<CodeRef> should expect four named arguments.
+message. This C<CodeRef> should expect the L<Black::Board::Message> object as it's
+only argument. This object will also be localized into C<$_>.
 
     Black::Board::Subscriber->new(
         subscription => sub {
-            my %args = @_;
-            # $_ = Black::Board::Message;
-            # %args = (
-            #   message    => Black::Board::Message,
-            #   subscriber => Black::Board::Subscriber,
-            #   topic      => Black::Board::Topic,
-            #   publisher  => Black::Board::Publisher
-            # );
+            my $message = shift;
+            # -or-
+            my $message = $_
         }
     );
-
-The first argument C<message> C<isa> L<Black::Board::Message> object. This
-object is also passed in via C<$_>. The second argument, C<subscriber>, is the
-L<Black::Board::Subscriber> object. The C<topic> argument is next, which is a
-L<Topic|Black::Board::Topic> object.  This is the topic object which this
-subscription is subscribed. Th last argument C<publisher>, is (You Guessed it!)
-a L<Publisher|Black::Board::Publisher> object. The C<publisher> is the main
-dispatch object which holds all the topics.
-
 
 =cut
 
@@ -129,28 +117,23 @@ dispatch object which holds all the topics.
 =method C<deliver>
 
 This method is usually called by L<Black::Board::Topic/METHODS/deliver>. It
-takes three positional/named parameters. The first argument is C<message>, the
-L<Message|Black::Board::Message> object which is being delivered. The next
-argument is C<topic>,  the L<Topic|Black::Board::Topic> the
-L<Message|Black::Board::Message> is being dispatched to. The last argument is
-C<publisher>, the L<Publisher|Black::Board::Publisher> object that is
-dispatching this L<Message|Black::Board::Message>.
+takes the L<Black::Board::Message> object to be delivered.
+
+This method sets the current C<Subscriber> in the L<Message> instance to
+this C<Subscriber> until this delivery is over (local()).
 
 See L</ATTRIBUTES/subscription> to see how the subscription is dispatched.
 
 =cut
 
-    method deliver( Message :$message, Topic :$topic, Publisher :$publisher ) {
+    imethod deliver( $message ) {
+
+        local $message->{subscriber} = $self; # optimized
+
         # For the subscription the more important bit of information is the
-        # message. We provide it in $_ and as the first argument. This
-        # naturally creates a priority for the rest of the bits of information
+        # message. We provide it in $_ and as the first argument.
         local $_ = $message;
-        return $self->subscription->(
-            message    => $message,
-            subscriber => $self,
-            topic      => $topic,
-            publisher  => $publisher
-        );
+        return $self->subscription->( $message );
     }
 }
 

@@ -6,12 +6,16 @@ use MooseX::Declare;
 
 class Black::Board {
 
+    use Black::Board::Publisher;
+    use Black::Board::Topic;
+    use Black::Board::Subscriber;
+
     use Scalar::Util qw( blessed reftype );
 
     use Moose;
     use Moose::Autobox;
     use Moose::Exporter;
-    use MooseX::ClassAttribute;
+    use MooseX::Singleton;
     use MooseX::Types::Moose qw(
         ArrayRef
         HashRef
@@ -23,11 +27,13 @@ class Black::Board {
         Message
         Topic
         TopicName
+        NamedCodeList
     );
     use MooseX::Params::Validate;
 
     Moose::Exporter->setup_import_methods(
-        as_is => [ qw( topic subscriber publish ) ]
+        as_is     => [ qw( topic subscriber ) ],
+        with_meta => [ qw( publish ) ]
     );
 
 =head1 SYNOPSIS
@@ -60,13 +66,9 @@ class Black::Board {
 
                     $logger->log( %{ $_->params } );
 
-                    return $_->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $_->merge_params(
                         { log_sent_for => $_->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $_->cancel_bubble;
@@ -77,13 +79,9 @@ class Black::Board {
     $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
-
-                return $_->clone(
-                    params => $_->params->merge( {
-                        message => '[Prefix] ' . $_->params->{message}
-                    } )
-                );
-
+                return $_->merge_params(
+                    { message => '[Prefix] ' . $_->params->{message} }
+                )
             }
         )
     );
@@ -104,13 +102,9 @@ class Black::Board {
 
                     $other_logger->log( %{ $_->params } );
 
-                    return $_->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $_->merge_params(
                         { other_log_sent_for => $_->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $_;
@@ -155,13 +149,9 @@ class Black::Board {
 
                     $logger->log( %{ $m->params } );
 
-                    return $m->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $m->merge_params(
                         { log_sent_for => $m->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $m->cancel_bubble;
@@ -201,7 +191,7 @@ class Black::Board {
 
     subscriber LogDispatch => sub {
         return $_->clone_with_params(
-            message => '[Prefix] ' . $_->params->{message}
+            { message => '[Prefix] ' . $_->params->{message} }
         )
     };
 
@@ -243,7 +233,7 @@ to be sent on multiple dispatch chains.
 =cut
 
 
-=clattr C<Publisher>
+=attr C<Publisher>
 
 This is the singleton L<Publisher|Black::Board::Publisher> object. You can set this to
 a different Publisher object but you should do this before you start declaring Topics or
@@ -251,17 +241,17 @@ be prepared to copy the previously registered Topics into the new object.
 
 =cut
 
-    class_has Publisher => (
+    has Publisher => (
         is => 'rw',
         isa => Publisher,
         lazy_build => 1,
     );
 
     sub _build_Publisher {
-        return __PACKAGE__->PublisherClass->new;
+        return shift->PublisherClass->new;
     }
 
-=clattr C<SubscriberClass>
+=attr C<SubscriberClass>
 
 Used to create a C<Subscriber> object when one is needed. Defaults to
 L<Black::Board::Subscriber>. Can be changed to a custom topic class name for
@@ -269,19 +259,17 @@ extending Black::Board.
 
 =cut
 
-    class_has SubscriberClass => (
+    has SubscriberClass => (
         is         => 'rw',
         isa        => Str,
         lazy_build => 1
     );
     sub _build_SubscriberClass {
         my $class = 'Black::Board::Subscriber';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
-=clattr C<TopicClass>
+=attr C<TopicClass>
 
 Used to create a C<Topic> object when one is needed. Defaults to
 L<Black::Board::Topic>. Can be changed to a custom topic class name for
@@ -289,19 +277,17 @@ extending Black::Board.
 
 =cut
 
-    class_has TopicClass => (
+    has TopicClass => (
         is         => 'rw',
         isa        => Str,
         lazy_build => 1
     );
     sub _build_TopicClass {
         my $class = 'Black::Board::Topic';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
-=clattr C<PublisherClass>
+=attr C<PublisherClass>
 
 Used to create a C<Publisher> object when one is needed. Defaults to
 L<Black::Board::Publisher>. Can be changed to a custom topic class name for
@@ -309,15 +295,13 @@ extending Black::Board.
 
 =cut
 
-    class_has PublisherClass => (
+    has PublisherClass => (
         is         => 'rw',
         isa        => Str,
         lazy_build => 1,
     );
     sub _build_PublisherClass {
         my $class = 'Black::Board::Publisher';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
@@ -350,9 +334,9 @@ does ensure the topic has been created
 
     sub topic ($@) {
         my ( $name, $code ) = pos_validated_list(
-            [ shift, @_ == 1 && ref( $_[0] ) eq 'HASH' ? $_[0] : { @_ } ],
+            [ shift, ( ( @_ == 1 && ref( $_[0] ) eq 'HASH' ) ? $_[0] : { @_ } ) ],
             { isa => TopicName, required => 1 },
-            { isa => HashRef[ArrayRef[CodeRef]] }
+            { isa => NamedCodeList, coerce => 1 }
         );
 
         my $topic = __PACKAGE__->_get_or_create_topic( $name );
@@ -388,11 +372,11 @@ C<subscription> callback.
             { isa => CodeRef, required => 1 },
         );
 
-        $subscription = __PACKAGE__->SubscriberClass->new(
+        my $subscriber = __PACKAGE__->SubscriberClass->new(
             subscription => $subscription
         );
-        $topic->register_subscription( $subscription );
-        return $subscription;
+        $topic->register_subscriber( $subscriber );
+        return $subscriber;
     }
 
 =func C<publish>
@@ -486,50 +470,69 @@ C<-params> argument will be merged and will take precedence.
 
 =cut
 
-    sub _create_message {
-        my $class = shift;
-        my $topic = shift;
-        my $opt = shift;
-
-        # removes all parameters that start with a dash
-        # these are used as top level parameters to Message->new()
-        my %p = $opt->keys->grep( sub { /^-/ } )->map( sub {
-            ( my $cp = $_ ) = s/^-//;
-            ( $cp => $opt->delete( $_ ) );
-        } );
-
-        # all other parameters are merged with params, -params taking precedence
-        $p{params} = $opt->merge( $p{params} || {} );
-
-        # the topic gets to say what type of message it wants. so you
-        # can create a custom topic with custom message types
-        return $topic->message_class->new( \%p );
-    }
-
+#    sub _create_message {
+#        my ( $class, $topic, $opt ) = @_;
+#
+#        # removes all parameters that start with a dash
+#        # these are used as top level parameters to Message->new()
+#        my %p = map {
+#            ( my $cp = $_ ) =~ s/^-//;
+#            ( $cp => delete $opt->{ $_ } );
+#        } grep /^-/, keys %$opt;
+#
+#        # all other parameters are merged with params, -params taking precedence
+#        $p{params} = { %$opt, %{ $p{params} || {} } };
+#
+#        # the topic gets to say what type of message it wants. so you
+#        # can create a custom topic with custom message types
+#        return $topic->{message_class}->new( \%p ); # optimized
+#    }
 
     sub publish ($@) {
-        my ( $topic, $maybe_message ) = pos_validated_list(
-            [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
-            { isa => Topic, coerce => 1, required => 1 },
-            { isa => Message|HashRef, required => 1 }
-        );
+        my $meta = shift;
+
+        # Optimization
+        my ( $topic, $maybe_message ) = ( shift, ( @_ == 1 ? $_[0] : { @_ } ) );
+        my $publisher;
+        unless ( blessed $topic ) {
+            $publisher = __PACKAGE__->Publisher;
+            $topic = $publisher->get_topic( my $topic_copy = $topic );
+
+            # can go no further without a topic to publish to
+            confess "can not find topic for [" . ( $topic_copy // 'Undef' ) . "]"
+                unless defined $topic;
+        }
+
 
         # this coercion has to be done by hand because we decide the Message
         # class to instanciate with the Topic object
-        my $message = blessed $maybe_message
-            ? $maybe_message
+        my $message;
+        if ( blessed $maybe_message ) {
+            $message = $maybe_message;
+        }
+        else {
+            my $opt = $maybe_message;
 
-            # $maybe_message is a hashref with meta information about how to
-            # construct a message object
-            : __PACKAGE__->_create_message( $topic, $maybe_message );
+            # removes all parameters that start with a dash
+            # these are used as top level parameters to Message->new()
+            my %p = map {
+                ( my $cp = $_ ) =~ s/^-//;
+                ( $cp => delete $opt->{ $_ } );
+            } grep /^-/, keys %$opt;
+
+            # all other parameters are merged with params, -params taking precedence
+            $p{params} = { %$opt, %{ $p{params} || {} } };
+
+            # the topic gets to say what type of message it wants. so you
+            # can create a custom topic with custom message types
+            $message = $topic->message_class->new( \%p );
+            $message->{with_meta} = $meta; # optimized
+        }
 
         # we could add sub-topics later
-        $message = $topic->parent->publish(
-            topic   => $topic,
-            message => $message
-        );
-        return $message;
+        return do { $publisher // $topic->parent }->publish( $topic, $message );
     }
+
 }
 
 =head1 EXPORTS

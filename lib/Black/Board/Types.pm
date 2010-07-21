@@ -33,7 +33,7 @@ Exports the types used within L<Black::Board>.
 
 class Black::Board::Types {
     use Moose::Util::TypeConstraints;
-    use MooseX::Types::Moose qw( Str ArrayRef HashRef );
+    use MooseX::Types::Moose qw( Str ArrayRef HashRef CodeRef );
     use MooseX::Types -declare => [qw(
         Publisher
 
@@ -49,7 +49,37 @@ class Black::Board::Types {
         TopicList
 
         TopicName
+
+        CodeList
+        NamedCodeList
     )];
+
+=head2 C<CodeList>
+
+An C<ArrayRef> of C<CodeRef> objects with coercion. Used in L<Black::Board> for
+C<subscriber> and C<initializer> arguments to C<topic()>.
+
+=cut
+
+    subtype CodeList,
+        as ArrayRef[CodeRef];
+    coerce CodeList,
+        from CodeRef,
+            via { [ $_[0] ] };
+    subtype NamedCodeList,
+        as HashRef[ArrayRef[CodeRef]];
+    coerce NamedCodeList,
+        from HashRef[ArrayRef|CodeRef],
+            via {
+                my $hr = shift;
+                +{
+                    map { $_ => [
+                        ref( $hr->{$_} ) eq 'ARRAY'
+                            ? @{ $hr->{$_} }
+                            : $hr->{$_}
+                    ] } keys %$hr
+                }
+            };
 
 =head2 C<Publisher>
 

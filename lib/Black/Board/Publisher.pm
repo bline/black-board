@@ -8,6 +8,7 @@ class Black::Board::Publisher
     with Black::Board::Trait::Traversable
 {
 
+    use Method::Signatures::Simple name => 'imethod';
     use Scalar::Util qw( blessed reftype );
     use Black::Board::Types qw(
         TopicList
@@ -23,6 +24,8 @@ This is the Publisher object for L<Black::Board>. It contains a list of
 L<Topic|Black::Board::Topic> objects. The C<Publisher> object takes care of
 this list of C<Topic> objects, it handles dispatching to them and provides
 methods to add and remove topics.
+
+=cut
 
 =attr C<topics>
 
@@ -100,7 +103,7 @@ Given a C<TopicName>, returns a Topic object if found, undefined otherwise.
 
 =cut
 
-    method get_topic( TopicName $topic_name ) {
+    imethod get_topic( $topic_name ) {
         return $self->first_topic( sub { $_->name eq $topic_name } );
     }
 
@@ -113,22 +116,21 @@ returned.
 
 =cut
 
-    method publish( Topic :$topic, Message :$message ) {
+    imethod publish( $topic, $message ) {
 
-        for my $subscriber ( $topic->subscribers->reverse->flatten ) {
+        for my $subscriber ( $topic->subscriber_list ) {
 
-            # if the subscriber wishes to change the message, they must
-            # clone it. the return copy is what bubbles up. deliver() must
-            # return the original message or a clone of it.
+            local $message->{publisher} = $self; # optimization
+
+            # the return copy is what bubbles up. deliver() must
+            # return the message or something like it.
             $message = $topic->deliver(
-                subscriber => $subscriber,
-                publisher  => $self,
-                message    => $message
+                $subscriber, $message
             );
 
             # this boolean is set to false when cancel_bubble() is called.
             # cancel_bubble() is used by final-destination subscribers
-            last unless $message->bubble;
+            last unless $message->{bubble}; # optimization
         }
 
         # the final message returned is expected to have information about what
