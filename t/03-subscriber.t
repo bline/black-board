@@ -16,7 +16,7 @@ my $sub = sub {
     for my $m ( qw( subscriber topic publisher ) ) {
         $_->$m()->test( $m ) if $_->$m->can( 'test' );
     }
-    return $p{message};
+    return $_;
 };
 
 isa_ok( my $s1 = Black::Board::Subscriber->new( subscription => $sub ),

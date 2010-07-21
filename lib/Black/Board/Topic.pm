@@ -184,9 +184,9 @@ will cause L</METHODS/deliver> to skip the current Message. The default
 implementation returns true.
 
 This is a place for subclasses to override. The default method only returns
-true.  You can override this in your cusom topic to do some complex checking.
+true.  You can override this in your custom topic to do some complex checking.
 You can skip the current message by returning false or you can throw an
-exception if things are really scarry!
+exception if things are really scary!
 
 =head2 C<deliver>
 
