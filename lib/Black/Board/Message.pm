@@ -10,6 +10,7 @@ class Black::Board::Message
 {
     use Method::Signatures::Simple name => 'imethod';
 
+
     has 'bubble' => (
         is => 'rw',
         isa => 'Bool',
@@ -17,11 +18,9 @@ class Black::Board::Message
     );
 
 
-    has 'caller_meta' => (
-        is       => 'ro',
-        isa      => 'Object',
-        weak_ref => 1,
-        required => 1
+    has 'with_meta' => (
+        is  => 'ro',
+        isa => 'Object',
     );
 
 
@@ -60,7 +59,7 @@ version 0.0001
 L<Black::Board::Subscriber> uses this flag to know if it should continue
 dispatching the current subscription message.
 
-=head2 C<caller_meta>
+=head2 C<with_meta>
 
 The meta object from the class the created this C<Message> object. Required.
 

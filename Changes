@@ -1,5 +1,5 @@
 
-0.0001    2010-07-21 10:05:58 EST5EDT
+0.0001    2010-07-21 10:56:15 EST5EDT
     * added caller_meta() to Message object to track where a message is created
     * added examples directory with a couple examples
     * added some tests
