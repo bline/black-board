@@ -178,8 +178,8 @@ class Black::Board {
 
             # $maybe_message is a hashref with meta information about how to
             # construct a message object
-            #  Can override -caller_meta
-            : __PACKAGE__->_create_message( $topic, { -caller_meta => $meta, %$maybe_message  } );
+            #  Can override -with_meta
+            : __PACKAGE__->_create_message( $topic, { -with_meta => $meta, %$maybe_message  } );
 
         # we could add sub-topics later
         $message = do { $publisher || $topic->parent }->publish( $topic, $message );
