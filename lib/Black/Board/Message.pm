@@ -78,7 +78,7 @@ chain that dispatches to the log object.
 =head2 C<merge_params>
 
 Merges C<HashRef> passed in with current C<<Message->params>>, the C<HashRef>
-taking presidence.
+taking precedence.
 
 Returns self.
 
