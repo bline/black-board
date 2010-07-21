@@ -5,11 +5,11 @@ use Test::More tests => 38;
 use Test::Exception;
 
 BEGIN {
-    use_ok( "Black::Board" );
     use_ok( 'Black::Board::Subscriber' );
     use_ok( "Black::Board::Message" );
     use_ok( "Black::Board::Topic" );
     use_ok( "Black::Board::Publisher" );
+    use_ok( "Black::Board" );
 }
 
 dies_ok { MyTopic->new } 'Topic->new dies with no name parameter';
