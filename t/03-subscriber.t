@@ -20,7 +20,7 @@ my $sub = sub {
 };
 
 isa_ok( my $s1 = Black::Board::Subscriber->new( subscription => $sub ),
-    'Black::Board::Subscriber', 'Subscriber->new return isa Subscriber' );
+    'Black::Board::Subscriber', 'Subscriber->new return' );
 
 can_ok( $s1, qw(
     subscription

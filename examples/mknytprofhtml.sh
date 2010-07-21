@@ -8,6 +8,7 @@ EXT=".out"
 
 [ -d "${HTMLDIR}" ] || mkdir "${HTMLDIR}" || exit 1
 
+chdir "${BINDIR}"
 for i in *.pl; do
     name="${i%.pl}"
 

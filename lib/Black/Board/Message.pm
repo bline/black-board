@@ -49,8 +49,8 @@ class Black::Board::Message
 
 
     imethod merge_params( $params ) {
-        $self->param( %$params );
-        return $self;
+        $self->{params} = { %{ $self->{params} //= {} }, %$params }; # optimized
+        $self;
     }
 
 }

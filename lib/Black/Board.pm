@@ -249,13 +249,9 @@ version release. Use at your own risk!
 
                     $logger->log( %{ $_->params } );
 
-                    return $_->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $_->merge_params(
                         { log_sent_for => $_->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $_->cancel_bubble;
@@ -266,13 +262,9 @@ version release. Use at your own risk!
     $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
-
-                return $_->clone(
-                    params => $_->params->merge( {
-                        message => '[Prefix] ' . $_->params->{message}
-                    } )
-                );
-
+                return $_->merge_params(
+                    { message => '[Prefix] ' . $_->params->{message} }
+                )
             }
         )
     );
@@ -293,13 +285,9 @@ version release. Use at your own risk!
 
                     $other_logger->log( %{ $_->params } );
 
-                    return $_->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $_->merge_params(
                         { other_log_sent_for => $_->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $_;
@@ -344,13 +332,9 @@ version release. Use at your own risk!
 
                     $logger->log( %{ $m->params } );
 
-                    return $m->clone_with_params(
-
-                        # Let the caller have a way to check if we logged
+                    # Let the caller have a way to check if we logged
+                    return $m->merge_params(
                         { log_sent_for => $m->params->{level} },
-
-                        # clone_with_params passes extra parameters off to clone
-                        bubble => 0
                     );
                 }
                 return $m->cancel_bubble;
