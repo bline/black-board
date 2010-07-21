@@ -6,6 +6,10 @@ use MooseX::Declare;
 
 class Black::Board {
 
+    use Black::Board::Publisher;
+    use Black::Board::Topic;
+    use Black::Board::Subscriber;
+
     use Scalar::Util qw( blessed reftype );
 
     use Moose;
@@ -53,8 +57,6 @@ class Black::Board {
     );
     sub _build_SubscriberClass {
         my $class = 'Black::Board::Subscriber';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
@@ -66,8 +68,6 @@ class Black::Board {
     );
     sub _build_TopicClass {
         my $class = 'Black::Board::Topic';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
@@ -79,8 +79,6 @@ class Black::Board {
     );
     sub _build_PublisherClass {
         my $class = 'Black::Board::Publisher';
-        Class::MOP::load_class( $class )
-            unless Class::MOP::is_class_loaded( $class );
         return $class;
     }
 
