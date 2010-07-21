@@ -2,7 +2,7 @@ NAME
     Black::Board - publish messages and subscribe to topics
 
 VERSION
-    version 0.0001
+    version 0.0002
 
 WARNING WARNING WARNING
     This module is currently considered alpha quality code by it's author,
