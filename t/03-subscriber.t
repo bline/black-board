@@ -12,9 +12,9 @@ BEGIN {
 }
 
 my $sub = sub {
-    $_->test( 'message' ) if $_->can( 'test' );
-    for my $m ( qw( subscriber topic publisher ) ) {
-        $_->$m()->test( $m ) if $_->$m()->can( 'test' );
+    $_->test( 'message' );
+    for my $m ( qw( topic publisher ) ) {
+        $_->$m()->test( $m );
     }
     return $_;
 };
@@ -36,7 +36,8 @@ can_ok( $s1, qw(
 ) );
 
 my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new( name => 't1' ), MyPublisher->new );
-isa_ok( $s1->deliver( $m, $t, $p ), 'MyMessage', 'Subscriber->deliver returned Message type' );
+;
+isa_ok( $p->publish( $t, $m ), 'MyMessage', 'Publisher->publisher returned Message type' );
 
 my %c = ( message => $m, topic => $t, publisher => $p );
 for ( keys %c ) {
