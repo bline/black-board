@@ -8,6 +8,7 @@ class Black::Board::Subscriber
     with Black::Board::Trait::Traversable
     with MooseX::Param
 {
+    use Method::Signatures::Simple name => 'imethod';
     use Black::Board::Types qw( Publisher Topic Message );
 
 
@@ -20,7 +21,8 @@ class Black::Board::Subscriber
     );
 
 
-    method deliver( Message :$message, Topic :$topic, Publisher :$publisher ) {
+    imethod deliver( $message, $topic, $publisher ) {
+
         # For the subscription the more important bit of information is the
         # message. We provide it in $_ and as the first argument. This
         # naturally creates a priority for the rest of the bits of information
@@ -29,7 +31,7 @@ class Black::Board::Subscriber
             message    => $message,
             subscriber => $self,
             topic      => $topic,
-            publisher  => $publisher
+            publisher  => $publisher,
         );
     }
 }

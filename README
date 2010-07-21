@@ -31,6 +31,9 @@ SYNOPSIS
             Black::Board::Subscriber->new(
                 subscription => sub {
 
+                    # $_ here is the Black::Board::Message object
+                    # which you can get explicitly from @_
+
                     if ( $logger->would_log( $_->params->{level} ) ) {
 
                         $logger->log( %{ $_->params } );
@@ -131,11 +134,9 @@ SYNOPSIS
                         $logger->log( %{ $m->params } );
 
                         return $m->clone_with_params(
-                            {
 
-                                # Let the caller have a way to check if we logged
-                                log_sent_for => $m->params->{level}
-                            },
+                            # Let the caller have a way to check if we logged
+                            { log_sent_for => $m->params->{level} },
 
                             # clone_with_params passes extra parameters off to clone
                             bubble => 0
@@ -170,7 +171,7 @@ SYNOPSIS
 
                 # Let the caller have a way to check if we logged
                 $m = $m->clone_with_params(
-                    other_log_sent_for => $m->params->{level}
+                    { other_log_sent_for => $m->params->{level} }
                 );
             }
             return $m;
@@ -178,7 +179,7 @@ SYNOPSIS
 
         subscriber LogDispatch => sub {
             return $_->clone_with_params(
-                message => '[Prefix] ' . $_->params->{message}
+                { message => '[Prefix] ' . $_->params->{message} }
             )
         };
 
@@ -206,7 +207,7 @@ DESCRIPTION
     cloned because the same message object should be able to be sent on
     multiple dispatch chains.
 
-CLASS ATTRIBUTES
+ATTRIBUTES
   "Publisher"
     This is the singleton Publisher object. You can set this to a different
     Publisher object but you should do this before you start declaring
@@ -230,7 +231,7 @@ CLASS ATTRIBUTES
 
 FUNCTIONS
   "topic"
-    First argument is the topic name to create, any additional argument are
+    First argument is the topic name to create, any additional arguments are
     passed off to "METHODS/subscriber" as new subscription callbacks.
 
     If the topic name already exists in the singleton "CLASS
@@ -244,14 +245,15 @@ FUNCTIONS
     2   If no subscribers are specified this topic call is an apparent no-op
         but
 
-        does ensure the topic is created
+        does ensure the topic has been created
 
   "subscriber"
     Create a new Black::Board::Subscriber object and adds it to the topic
-    specified. First argument is a Black::Board::Topic or the name of one
-    already registered. The second argument should be a code reference. The
-    code reference is passed off to Black::Board::Subscriber as the
-    "subscription" callback.
+    specified. The first argument is a Black::Board::Topic object or the
+    name of one which is already registered to the Singleton that lives in
+    "<Black::Board-"Publisher()>>. The second argument should be a code
+    reference. The code reference is passed off to Black::Board::Subscriber
+    as the "subscription" callback.
 
   "publish"
     Publishes the given message to the given topic.

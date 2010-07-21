@@ -8,6 +8,7 @@ class Black::Board::Publisher
     with Black::Board::Trait::Traversable
 {
 
+    use Method::Signatures::Simple name => 'imethod';
     use Scalar::Util qw( blessed reftype );
     use Black::Board::Types qw(
         TopicList
@@ -16,6 +17,7 @@ class Black::Board::Publisher
         Message
     );
     use Moose::Autobox;
+
 
 
     has 'topics' => (
@@ -59,22 +61,19 @@ class Black::Board::Publisher
     }
 
 
-    method get_topic( TopicName $topic_name ) {
+    imethod get_topic( $topic_name ) {
         return $self->first_topic( sub { $_->name eq $topic_name } );
     }
 
 
-    method publish( Topic :$topic, Message :$message ) {
+    imethod publish( $topic, $message ) {
 
-        for my $subscriber ( $topic->subscribers->reverse->flatten ) {
+        for my $subscriber ( $topic->subscriber_list ) {
 
-            # if the subscriber wishes to change the message, they must
-            # clone it. the return copy is what bubbles up. deliver() must
-            # return the original message or a clone of it.
+            # the return copy is what bubbles up. deliver() must
+            # return the message or something like it.
             $message = $topic->deliver(
-                subscriber => $subscriber,
-                publisher  => $self,
-                message    => $message
+                $subscriber, $message, $self
             );
 
             # this boolean is set to false when cancel_bubble() is called.

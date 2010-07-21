@@ -8,7 +8,8 @@ use MooseX::Declare;
 class Black::Board::Topic
     with Black::Board::Trait::Traversable
 {
-    use MooseX::Types::Moose qw( ClassName ArrayRef CodeRef );
+    use Method::Signatures::Simple name => 'imethod';
+    use MooseX::Types::Moose qw( Str ArrayRef CodeRef );
     use Black::Board::Types qw(
         Message
         TopicName
@@ -34,7 +35,7 @@ class Black::Board::Topic
         coerce => 1,
         handles => {
             has_subscribers     => 'count',
-            register_subscriber => 'push',
+            register_subscriber => 'unshift',
             subscriber_list     => 'elements'
         }
     );
@@ -64,33 +65,39 @@ class Black::Board::Topic
 
     has 'message_class' => (
         is => 'rw',
-        isa => ClassName,
-        default => 'Black::Board::Message'
+        isa => Str,
+        lazy_build => 1,
     );
+    sub _build_message_class {
+        my $class = 'Black::Board::Message';
+        Class::MOP::load_class( $class )
+            unless Class::MOP::is_class_loaded( $class );
+        return $class;
+    }
 
 
-    method wants_message( Message $message ) {
+    imethod wants_message( $message ) {
         return 1;
     }
 
 
-    method valid_message( Message $message ) {
-        return $message->isa( $self->message_class );
+    imethod valid_message( $message ) {
+        return 1; # $message->isa( $self->message_class );
     }
 
 
-    method deliver( Subscriber :$subscriber, Message :$message, Publisher :$publisher ) {
+    imethod deliver( $subscriber, $message, $publisher ) {
 
         # run onetime initialization code
-        while ( my $init = $self->dequeue_initializer ) {
-            $init->(
+        while ( @{ $self->initializers } ) {
+            $self->dequeue_initializer->(
                 topic     => $self,
-                publisher => $publisher
+                publisher => $publisher,
             );
         }
 
         # first give a chance for soft failure
-        return unless $self->wants_message( $message );
+        return $message unless $self->wants_message( $message );
 
         # the message was sent directly to these topics
         # it is a logic error at this point for messages
@@ -99,9 +106,7 @@ class Black::Board::Topic
             unless $self->valid_message( $message );
 
         return $subscriber->deliver(
-            message   => $message,
-            topic     => $self,
-            publisher => $publisher
+            $message, $self, $publisher
         );
     }
 }
@@ -188,9 +193,8 @@ cause L</METHODS/deliver> to skip the current topic. The default returns true.
 
 =head2 C<valid_message>
 
-Returning false will cause L</METHODS/deliver> to throw
-an exception. The default implementation of this just check that the message C<isa()>
-C<message_class()>.
+Returning false will cause L</METHODS/deliver> to throw an exception. The
+default implementation of this just returns true.
 
 =head2 C<deliver>
 

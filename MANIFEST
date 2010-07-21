@@ -8,6 +8,11 @@ Makefile.PL
 README
 SIGNATURE
 dist.ini
+examples/log-dispatch-bread-board.out
+examples/log-dispatch-bread-board.pl
+examples/log-dispatch.out
+examples/log-dispatch.pl
+examples/mknytpof.sh
 lib/Black/Board.pm
 lib/Black/Board/Manual.pod
 lib/Black/Board/Message.pm

@@ -8,28 +8,34 @@ class Black::Board::Message
     with MooseX::Param
     with Black::Board::Trait::Traversable
 {
-    use Moose::Autobox;
-    use MooseX::Clone;
+    use Method::Signatures::Simple name => 'imethod';
 
     has 'bubble' => (
         is => 'rw',
         isa => 'Bool',
-        traits => [ 'NoClone' ],
         default => 1,
     );
 
 
-    method cancel_bubble( @args ) {
-        return $self->clone( bubble => 0, @args );
+    has 'caller_meta' => (
+        is       => 'ro',
+        isa      => 'Object',
+        weak_ref => 1,
+        required => 1
+    );
+
+
+    imethod cancel_bubble() {
+        $self->bubble( 0 );
+        return $self;
     }
 
 
-    method clone_with_params( HashRef $params, @args ) {
-        return $self->clone(
-            params => scalar( $self->params->merge( $params ) ),
-            @args
-        );
+    imethod merge_params( $params ) {
+        $self->param( %$params );
+        return $self;
     }
+
 }
 
 
@@ -54,26 +60,28 @@ version 0.0001
 L<Black::Board::Subscriber> uses this flag to know if it should continue
 dispatching the current subscription message.
 
+=head2 C<caller_meta>
+
+The meta object from the class the created this C<Message> object. Required.
+
 =head1 METHODS
 
 =head2 C<cancel_bubble>
 
 This makes sense from the context of a L<Black::Board::Subscriber> subscription
 callback. It allows you to cancel the current chain of subscriber dispatch.
-This is usually done in end-point* subscribers. This object is cloned and bubble
-set to false in the clone.
-
-Any extra arguments passed to this method will be passed off to C<clone()>.
+This is usually done in end-point* subscribers. This object is returned with bubble
+set to false.
 
 * An example of an end-point is the subscriber in a C<LogDispatch> subscription
 chain that dispatches to the log object. 
 
-=head2 C<clone_with_params>
+=head2 C<merge_params>
 
-Returns a clone of this object setting C<<->params>>. Takes a C<HashRef> of parameters
-which will be merged with the current C<<->params>>.
+Merges C<HashRef> passed in with current C<<Message->params>>, the C<HashRef>
+taking presidence.
 
-Any extra arguments passed to this method will be passed off to C<clone()>.
+Returns self.
 
 =head1 SEE ALSO
 

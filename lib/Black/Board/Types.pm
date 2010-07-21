@@ -7,7 +7,7 @@ use MooseX::Declare;
 
 class Black::Board::Types {
     use Moose::Util::TypeConstraints;
-    use MooseX::Types::Moose qw( Str ArrayRef HashRef );
+    use MooseX::Types::Moose qw( Str ArrayRef HashRef CodeRef );
     use MooseX::Types -declare => [qw(
         Publisher
 
@@ -23,7 +23,31 @@ class Black::Board::Types {
         TopicList
 
         TopicName
+
+        CodeList
+        NamedCodeList
     )];
+
+
+    subtype CodeList,
+        as ArrayRef[CodeRef];
+    coerce CodeList,
+        from CodeRef,
+            via { [ $_[0] ] };
+    subtype NamedCodeList,
+        as HashRef[ArrayRef[CodeRef]];
+    coerce NamedCodeList,
+        from HashRef[ArrayRef|CodeRef],
+            via {
+                my $hr = shift;
+                +{
+                    map { $_ => [
+                        ref( $hr->{$_} ) eq 'ARRAY'
+                            ? @{ $hr->{$_} }
+                            : $hr->{$_}
+                    ] } keys %$hr
+                }
+            };
 
 
     class_type Publisher, { class => 'Black::Board::Publisher' };
@@ -108,6 +132,11 @@ version 0.0001
 Exports the types used within L<Black::Board>.
 
 =head1 TYPES
+
+=head2 C<CodeList>
+
+An C<ArrayRef> of C<CodeRef> objects with coercion. Used in L<Black::Board> for
+C<subscriber> and C<initializer> arguments to C<topic()>.
 
 =head2 C<Publisher>
 

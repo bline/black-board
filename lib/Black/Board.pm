@@ -11,12 +11,11 @@ class Black::Board {
     use Moose;
     use Moose::Autobox;
     use Moose::Exporter;
-    use MooseX::ClassAttribute;
+    use MooseX::Singleton;
     use MooseX::Types::Moose qw(
         ArrayRef
         HashRef
         CodeRef
-        ClassName
         Str
     );
     use Black::Board::Types qw(
@@ -24,30 +23,32 @@ class Black::Board {
         Message
         Topic
         TopicName
+        NamedCodeList
     );
     use MooseX::Params::Validate;
 
     Moose::Exporter->setup_import_methods(
-        as_is => [ qw( topic subscriber publish ) ]
+        as_is     => [ qw( topic subscriber ) ],
+        with_meta => [ qw( publish ) ]
     );
 
 
 
 
-    class_has Publisher => (
+    has Publisher => (
         is => 'rw',
         isa => Publisher,
         lazy_build => 1,
     );
 
     sub _build_Publisher {
-        return __PACKAGE__->PublisherClass->new;
+        return shift->PublisherClass->new;
     }
 
 
-    class_has SubscriberClass => (
+    has SubscriberClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1
     );
     sub _build_SubscriberClass {
@@ -58,9 +59,9 @@ class Black::Board {
     }
 
 
-    class_has TopicClass => (
+    has TopicClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1
     );
     sub _build_TopicClass {
@@ -71,9 +72,9 @@ class Black::Board {
     }
 
 
-    class_has PublisherClass => (
+    has PublisherClass => (
         is         => 'rw',
-        isa        => ClassName,
+        isa        => Str,
         lazy_build => 1,
     );
     sub _build_PublisherClass {
@@ -88,11 +89,6 @@ class Black::Board {
         my $class = shift;
         my $name = shift;
 
-        # if the topic already exists:
-        #   1. If subscribers are specified, the subscribers will be
-        #   subscribed to the already existing topic.
-        #   2. If no subscribers are specified this topic call is an apparent
-        #   no-op but does ensure the topic is created
         my $topic = $class->Publisher->get_topic( $name );
         unless ( $topic ) {
             $topic = $class->TopicClass->new( name => $name );
@@ -102,13 +98,13 @@ class Black::Board {
     }
 
     sub topic ($@) {
-        my ( $name, $code ) = pos_validate_list(
-            [ shift, @_ == 1 && ref( $_[0] ) eq 'HASH' ? $_[0] : { @_ } ],
+        my ( $name, $code ) = pos_validated_list(
+            [ shift, ( ( @_ == 1 && ref( $_[0] ) eq 'HASH' ) ? $_[0] : { @_ } ) ],
             { isa => TopicName, required => 1 },
-            { isa => HashRef[ArrayRef[CodeRef]] }
+            { isa => NamedCodeList, coerce => 1 }
         );
 
-        my $topic = __PACAKGE__->_get_or_create_topic( $name );
+        my $topic = __PACKAGE__->_get_or_create_topic( $name );
 
         # cumlative init handlers that happen the first time something
         # is published to the topic
@@ -131,28 +127,26 @@ class Black::Board {
             { isa => CodeRef, required => 1 },
         );
 
-        $subscription = __PACKAGE__->SubscriberClass->new(
+        my $subscriber = __PACKAGE__->SubscriberClass->new(
             subscription => $subscription
         );
-        $topic->register_subscription( $subscription );
-        return $subscription;
+        $topic->register_subscriber( $subscriber );
+        return $subscriber;
     }
 
 
     sub _create_message {
-        my $class = shift;
-        my $topic = shift;
-        my $opt = shift;
+        my ( $class, $topic, $opt ) = @_;
 
         # removes all parameters that start with a dash
-        # these are used as top level parameters to to_Message()
-        my %p = $opt->keys->grep( sub { /^-/ } )->map( sub {
-            ( my $cp = $_ ) = s/^-//;
-            ( $cp => $opt->delete( $_ ) );
-        } );
+        # these are used as top level parameters to Message->new()
+        my %p = map {
+            ( my $cp = $_ ) =~ s/^-//;
+            ( $cp => delete $opt->{ $_ } );
+        } grep /^-/, keys %$opt;
 
         # all other parameters are merged with params, -params taking precedence
-        $p{params} = $opt->merge( $p{params} || {} );
+        $p{params} = { %$opt, %{ $p{params} || {} } };
 
         # the topic gets to say what type of message it wants. so you
         # can create a custom topic with custom message types
@@ -161,11 +155,23 @@ class Black::Board {
 
 
     sub publish ($@) {
-        my ( $topic, $maybe_message ) = pos_validated_list(
-            [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
-            { isa => Topic, coerce => 1, required => 1 },
-            { isa => Message|HashRef, required => 1 }
-        );
+        my $meta = shift;
+
+        # Optimization
+        my ( $topic, $maybe_message ) = ( shift, ( @_ == 1 ? $_[0] : { @_ } ) );
+
+        my $publisher;
+        unless ( blessed $topic ) {
+            $publisher = __PACKAGE__->Publisher;
+            $topic = $publisher->get_topic( $topic );
+        }
+
+        # the above instead of:
+#        my ( $topic, $maybe_message ) = pos_validated_list(
+#            [ shift, ( @_ == 1 ? $_[0] : { @_ } ) ],
+#            { isa => Topic, coerce => 1, required => 1 },
+#            { isa => Message|HashRef, required => 1 }
+#        );
 
         # this coercion has to be done by hand because we decide the Message
         # class to instanciate with the Topic object
@@ -174,13 +180,11 @@ class Black::Board {
 
             # $maybe_message is a hashref with meta information about how to
             # construct a message object
-            : __PACKAGE__->_create_message( $topic, $maybe_message );
+            #  Can override -caller_meta
+            : __PACKAGE__->_create_message( $topic, { -caller_meta => $meta, %$maybe_message  } );
 
         # we could add sub-topics later
-        $message = $topic->parent->publish(
-            topic   => $topic,
-            message => $message
-        );
+        $message = do { $publisher || $topic->parent }->publish( $topic, $message );
         return $message;
     }
 }
@@ -228,6 +232,9 @@ version release. Use at your own risk!
     $log_topic->register_subscriber(
         Black::Board::Subscriber->new(
             subscription => sub {
+
+                # $_ here is the Black::Board::Message object
+                # which you can get explicitly from @_
 
                 if ( $logger->would_log( $_->params->{level} ) ) {
 
@@ -329,11 +336,9 @@ version release. Use at your own risk!
                     $logger->log( %{ $m->params } );
 
                     return $m->clone_with_params(
-                        {
 
-                            # Let the caller have a way to check if we logged
-                            log_sent_for => $m->params->{level}
-                        },
+                        # Let the caller have a way to check if we logged
+                        { log_sent_for => $m->params->{level} },
 
                         # clone_with_params passes extra parameters off to clone
                         bubble => 0
@@ -368,7 +373,7 @@ version release. Use at your own risk!
 
             # Let the caller have a way to check if we logged
             $m = $m->clone_with_params(
-                other_log_sent_for => $m->params->{level}
+                { other_log_sent_for => $m->params->{level} }
             );
         }
         return $m;
@@ -376,7 +381,7 @@ version release. Use at your own risk!
 
     subscriber LogDispatch => sub {
         return $_->clone_with_params(
-            message => '[Prefix] ' . $_->params->{message}
+            { message => '[Prefix] ' . $_->params->{message} }
         )
     };
 
@@ -404,7 +409,7 @@ act as filters on the message. Each subscriber can return a modified copy of the
 message.  The message is cloned because the same message object should be able
 to be sent on multiple dispatch chains.
 
-=head1 CLASS ATTRIBUTES
+=head1 ATTRIBUTES
 
 =head2 C<Publisher>
 
@@ -434,7 +439,7 @@ extending Black::Board.
 
 =head2 C<topic>
 
-First argument is the topic name to create, any additional argument are passed
+First argument is the topic name to create, any additional arguments are passed
 off to L</METHODS/subscriber> as new subscription callbacks.
 
 If the topic name already exists in the singleton L</CLASS ATTRIBUTES/Publisher>:
@@ -451,17 +456,18 @@ already existing topic.
 
 If no subscribers are specified this topic call is an apparent no-op but
 
-does ensure the topic is created
+does ensure the topic has been created
 
 =back
 
 =head2 C<subscriber>
 
 Create a new L<Black::Board::Subscriber> object and adds it to the topic
-specified.  First argument is a L<Black::Board::Topic> or the name of one
-already registered.  The second argument should be a code reference. The code
-reference is passed off to L<Black::Board::Subscriber> as the C<subscription>
-callback.
+specified.  The first argument is a L<Black::Board::Topic> object or the name
+of one which is already registered to the Singleton that lives in
+C<<Black::Board->Publisher()>>.  The second argument should be a code reference.
+The code reference is passed off to L<Black::Board::Subscriber> as the
+C<subscription> callback.
 
 =head2 C<publish>
 
