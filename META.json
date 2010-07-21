@@ -36,7 +36,6 @@
       },
       "test" : {
          "requires" : {
-            "Data::Dumper" : 0,
             "English" : 0,
             "Moose::Role" : 0,
             "MyTestRole" : 0,

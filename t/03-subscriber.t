@@ -36,11 +36,11 @@ can_ok( $s1, qw(
 ) );
 
 my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new( name => 't1' ), MyPublisher->new );
-my %c = ( message => $m, topic => $t, publisher => $p );
-isa_ok( $s1->deliver( %c ), 'MyMessage', 'Subscriber->deliver returned Message type' );
+isa_ok( $s1->deliver( $m, $t, $p ), 'MyMessage', 'Subscriber->deliver returned Message type' );
 
+my %c = ( message => $m, topic => $t, publisher => $p );
 for ( keys %c ) {
-    is( $c{$_}->test, $_, 'subscription callback called with ' . $_ )
+    is( $c{$_}->test, $_, 'subscription callback called with ' . $_ );
 }
 
 
@@ -56,9 +56,9 @@ BEGIN {
     extends 'Black::Board::Topic';
     has 'test' => ( is => 'rw' );
 
-    has '+message_class' => (
-        default => 'MyMessage'
-    );
+    around '_build_message_class' => sub {
+        return 'MyMessage';
+    };
 
     package MyPublisher;
     use Moose;

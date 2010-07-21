@@ -3,7 +3,6 @@ abstract: 'publish messages and subscribe to topics'
 author:
   - 'Scott Beck <sabeck@cpan.org>'
 build_requires:
-  Data::Dumper: 0
   English: 0
   Moose::Role: 0
   MyTestRole: 0
