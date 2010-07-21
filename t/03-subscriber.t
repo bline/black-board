@@ -36,7 +36,9 @@ can_ok( $s1, qw(
 ) );
 
 my ( $m, $t, $p ) = ( MyMessage->new, MyTopic->new( name => 't1' ), MyPublisher->new );
-;
+
+$t->register_subscriber( $s1 );
+
 isa_ok( $p->publish( $t, $m ), 'MyMessage', 'Publisher->publisher returned Message type' );
 
 my %c = ( message => $m, topic => $t, publisher => $p );
